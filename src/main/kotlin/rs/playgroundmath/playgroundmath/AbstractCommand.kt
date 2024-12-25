@@ -1,55 +1,24 @@
 package rs.playgroundmath.playgroundmath
 
 import rs.playgroundmath.playgroundmath.dto.InputDto
+import rs.playgroundmath.playgroundmath.validator.ValidationError
+import rs.playgroundmath.playgroundmath.validator.Validator
 
-abstract class AbstractCommand {
-    protected var errors: Array<Map<String, String>> = emptyArray()
+abstract class AbstractCommand<T: InputDto, R> {
+    protected var errors: List<ValidationError> = emptyList()
 
-    abstract fun execute(dto: InputDto): AbstractResultDto
+    abstract fun execute(dto: T): R?
 
-    protected fun validate(): Boolean
-    {
-        val validator = getValidatorInstance()
-        val results = validator.validate()
+    protected fun validate(validator: Validator<T>, dto: T): Boolean {
+        val results = validator.validate(dto)
 
-        val isValidationSuccess = results.isEmpty()
-
-        if (!isValidationSuccess) {
+        if (results.isNotEmpty()) {
             errors = results
+            return false
         }
 
-        return isValidationSuccess
+        return true
     }
 
-    protected fun getValidatorInstance(): AbstractValidator
-    {
-        return AbstractValidator()
-    }
-
-    protected fun handleErrorResults(result: Any)
-    {
-
-    }
-
-    protected fun getResultDtoInstance(): AbstractResultDto
-    {
-        return AbstractResultDto()
-    }
-
-    protected fun generateResults(): AbstractResultDto
-    {
-        val resultDto = getResultDtoInstance()
-        populateResultDto(resultDto, resultDto)
-
-        return resultDto;
-    }
-
-    protected fun populateResultDto(resultDto: AbstractResultDto, result: Any)
-    {
-        if (errors.isNotEmpty()) {
-            resultDto.setFail()
-        } else {
-            resultDto.setSuccess()
-        }
-    }
+    fun getValidationErrors(): List<ValidationError> = errors
 }
