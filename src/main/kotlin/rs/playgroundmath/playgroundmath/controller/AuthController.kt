@@ -29,6 +29,10 @@ class AuthController(
 
         val results = userRegisterCommand.execute(userRegisterDto)
 
-        return ResponseEntity.ok(results)
+        return if (userRegisterCommand.getValidationErrors().isNotEmpty()) {
+            ResponseEntity.badRequest().body(userRegisterCommand.getValidationErrors())
+        } else {
+            ResponseEntity.ok(results)
+        }
     }
 }
