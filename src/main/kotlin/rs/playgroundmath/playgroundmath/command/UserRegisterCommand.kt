@@ -1,5 +1,6 @@
 package rs.playgroundmath.playgroundmath.command
 
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
 import rs.playgroundmath.playgroundmath.AbstractCommand
 import rs.playgroundmath.playgroundmath.dto.UserRegisterDto
@@ -12,6 +13,8 @@ class UserRegisterCommand(
     private val userRepository: UserRepository,
     private val validator: UserRegisterDtoValidator
 ): AbstractCommand<UserRegisterDto, User>() {
+    private val encoder = BCryptPasswordEncoder()
+
     override fun execute(dto: UserRegisterDto): User?
     {
         if (!validate(validator, dto)) {
@@ -20,7 +23,7 @@ class UserRegisterCommand(
 
         val user = User(
             email = dto.email,
-            password = dto.password
+            password = encoder.encode(dto.password)
         )
 
         return userRepository.save(user)
