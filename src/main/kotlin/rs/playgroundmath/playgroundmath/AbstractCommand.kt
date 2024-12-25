@@ -10,6 +10,7 @@ abstract class AbstractCommand<T: InputDto, R> {
     abstract fun execute(dto: T): R?
 
     protected fun validate(validator: Validator<T>, dto: T): Boolean {
+        errors = emptyList()
         val results = validator.validate(dto)
 
         if (results.isNotEmpty()) {
