@@ -2,9 +2,12 @@ package rs.playgroundmath.playgroundmath.validator
 
 import org.springframework.stereotype.Component
 import rs.playgroundmath.playgroundmath.dto.UserRegisterDto
+import rs.playgroundmath.playgroundmath.repository.UserRepository
 
 @Component
-class UserRegisterDtoValidator: Validator<UserRegisterDto> {
+class UserRegisterDtoValidator(
+    private val userRepository: UserRepository
+): Validator<UserRegisterDto> {
     override fun validate(input: UserRegisterDto): List<ValidationError> {
         val errors = mutableListOf<ValidationError>()
 
@@ -20,6 +23,15 @@ class UserRegisterDtoValidator: Validator<UserRegisterDto> {
             errors.add(ValidationError("email", "Email cannot be empty"))
         }
 
+        if (emailExists(input.email)) {
+            errors.add(ValidationError("email", "User with email already exists"))
+        }
+
         return errors;
+    }
+
+    protected fun emailExists(email: String): Boolean
+    {
+        return userRepository.existsByEmail(email);
     }
 }
