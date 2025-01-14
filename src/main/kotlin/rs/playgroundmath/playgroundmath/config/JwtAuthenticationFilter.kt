@@ -5,36 +5,51 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.stereotype.Service
+import org.springframework.security.core.userdetails.UserDetails
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource
+import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
+import rs.playgroundmath.playgroundmath.service.CustomUserDetailsService
+import rs.playgroundmath.playgroundmath.service.TokenService
 
-@Service
+@Component
 class JwtAuthenticationFilter(
-    private val jwtUtil: JwtUtil,
-    private val customUserDetailsService: CustomUserDetailsService
-): OncePerRequestFilter() {
-    override fun doFilterInternal(
-        request: HttpServletRequest,
-        response: HttpServletResponse,
-        filterChain: FilterChain
-    ) {
-        val authHeader = request.getHeader("Authorization")
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            val token = authHeader.substring(7)
-            println("Token je: " + token)
-            val email = jwtUtil.extractEmail(token)
-            println("Email je: " + email)
-            if (email != null && SecurityContextHolder.getContext().authentication == null) {
-                val userDetails = customUserDetailsService.loadUserByUsername(email)
+    private val userDetailsService: CustomUserDetailsService,
+    private val tokenService: TokenService
+) : OncePerRequestFilter() {
 
-                if (jwtUtil.validateToken(token, userDetails)) {
-                    val authToken = UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.authorities
-                    )
-                    SecurityContextHolder.getContext().authentication = authToken
-                }
-            }
+    override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, filterChain: FilterChain) {
+        val authHeader: String? = request.getHeader("Authorization")
+
+        if (authHeader.doesNotContainBearerToken()) {
+            filterChain.doFilter(request, response)
+            return
         }
-        filterChain.doFilter(request, response)
+
+        val jwtToken = authHeader!!.extractTokenValue()
+        val email = tokenService.getExtractedEmail(jwtToken)
+        println("Extracted email: $email with token: $jwtToken")
+
+        if (email != null && SecurityContextHolder.getContext().authentication == null) {
+            val foundUser = userDetailsService.loadUserByUsername(email)
+
+            if (tokenService.isTokenValid(jwtToken, foundUser)) {
+                updateContext(foundUser, request)
+            }
+
+            filterChain.doFilter(request, response)
+        }
     }
+
+    private fun updateContext(foundUser: UserDetails, request: HttpServletRequest) {
+        val authToken = UsernamePasswordAuthenticationToken(foundUser, null, foundUser.authorities)
+        authToken.details = WebAuthenticationDetailsSource().buildDetails(request)
+        SecurityContextHolder.getContext().authentication = authToken
+    }
+
+    private fun String?.doesNotContainBearerToken(): Boolean =
+        this == null || !this.startsWith("Bearer ")
+
+    private fun String.extractTokenValue(): String =
+        this.substringAfter("Bearer ")
 }

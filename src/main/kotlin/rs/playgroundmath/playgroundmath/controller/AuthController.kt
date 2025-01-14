@@ -1,28 +1,26 @@
 package rs.playgroundmath.playgroundmath.controller
 
 import org.springframework.http.ResponseEntity
-import org.springframework.security.authentication.AuthenticationManager
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import rs.playgroundmath.playgroundmath.command.UserLoginCommand
 import rs.playgroundmath.playgroundmath.command.UserRegisterCommand
-import rs.playgroundmath.playgroundmath.config.JwtUtil
+import rs.playgroundmath.playgroundmath.dto.UserLoginDto
 import rs.playgroundmath.playgroundmath.dto.UserRegisterDto
-import rs.playgroundmath.playgroundmath.payload.request.LoginRequest
+import rs.playgroundmath.playgroundmath.payload.request.AuthenticationRequest
+import rs.playgroundmath.playgroundmath.payload.request.AuthenticationResponse
 import rs.playgroundmath.playgroundmath.payload.request.RegisterRequest
 import rs.playgroundmath.playgroundmath.payload.response.Response
+import rs.playgroundmath.playgroundmath.service.AuthenticationService
 
 @RestController
 @RequestMapping("/api/v1/auth")
 class AuthController(
     private val userRegisterCommand: UserRegisterCommand,
-    private val userLoginCommand: UserLoginCommand,
-    private val authenticationManager: AuthenticationManager,
-    private val jwtUtil: JwtUtil
+    private val authenticationService: AuthenticationService
 ) {
 
     @PostMapping("/register")
@@ -50,18 +48,17 @@ class AuthController(
     }
 
     @PostMapping("/login")
-    fun login(@RequestBody loginRequest: LoginRequest): ResponseEntity<Any> {
-        val authentication = authenticationManager.authenticate(
-            UsernamePasswordAuthenticationToken(loginRequest.email, loginRequest.password)
-        )
-
-        val token = jwtUtil.generateToken(authentication.name)
-
-        return ResponseEntity.ok(token)
-    }
+    fun login(@RequestBody authRequest: AuthenticationRequest): AuthenticationResponse =
+        authenticationService.authentication(authRequest)
 
     @GetMapping("/test")
     fun test(): ResponseEntity<Any> {
         return ResponseEntity.ok("test")
+    }
+
+    @PostMapping("/logout")
+    fun logout(): ResponseEntity<String> {
+        SecurityContextHolder.clearContext()
+        return ResponseEntity.ok("Logged out")
     }
 }
