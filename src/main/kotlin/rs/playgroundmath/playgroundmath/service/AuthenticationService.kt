@@ -5,7 +5,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.stereotype.Service
 import rs.playgroundmath.playgroundmath.config.JwtProperties
 import rs.playgroundmath.playgroundmath.payload.request.AuthenticationRequest
-import rs.playgroundmath.playgroundmath.payload.request.AuthenticationResponse
+import rs.playgroundmath.playgroundmath.payload.response.AuthenticationResponse
 import java.util.*
 
 @Service

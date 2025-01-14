@@ -1,6 +1,6 @@
 package rs.playgroundmath.playgroundmath.payload.request
 
-class RegisterRequest(
+data class UserRegisterRequest(
     val email: String,
     val password: String
 )
