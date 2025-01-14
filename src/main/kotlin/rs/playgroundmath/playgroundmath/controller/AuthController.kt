@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import rs.playgroundmath.playgroundmath.command.UserRegisterCommand
-import rs.playgroundmath.playgroundmath.dto.UserLoginDto
 import rs.playgroundmath.playgroundmath.dto.UserRegisterDto
 import rs.playgroundmath.playgroundmath.payload.request.AuthenticationRequest
 import rs.playgroundmath.playgroundmath.payload.request.AuthenticationResponse
