@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: PlaygroundMath
+  datasource:
+    url: jdbc:mysql://mysql:3306/playgroundmath
+    username: root
+    password: ""
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+
+jwt:
+  key: ljkasdafjklhadlsjfhasdkjhfekjhljkasdafjklhadlsjfhasdkjhfekjh
+  access-token-expiration: 36000000
+  refresh-token-expiration: 86400000
+
+logging:
+  level:
+    org.springframework.security: DEBUG
