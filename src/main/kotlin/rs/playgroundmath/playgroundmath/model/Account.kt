@@ -18,5 +18,8 @@ data class Account(
     val username: String = "",
 
     @Column(name = "points", nullable = false)
-    val points: Long = 0
+    val points: Long = 0,
+
+    @OneToMany(mappedBy = "account", cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
+    val tasks: List<Task> = listOf()
 )
