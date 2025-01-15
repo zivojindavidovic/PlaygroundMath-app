@@ -1,10 +1,8 @@
 package rs.playgroundmath.playgroundmath.service
 
-import org.springframework.security.core.context.SecurityContext
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Service
-import rs.playgroundmath.playgroundmath.config.SecurityConfiguration
 import rs.playgroundmath.playgroundmath.exceptions.AccountMaximumPerUserException
 import rs.playgroundmath.playgroundmath.model.Account
 import rs.playgroundmath.playgroundmath.model.User
