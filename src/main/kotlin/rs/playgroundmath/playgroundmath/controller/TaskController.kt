@@ -5,7 +5,9 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import rs.playgroundmath.playgroundmath.payload.request.GenerateTasksRequest
+import rs.playgroundmath.playgroundmath.payload.request.SolveTestRequest
 import rs.playgroundmath.playgroundmath.payload.response.GenerateTasksResponse
+import rs.playgroundmath.playgroundmath.payload.response.SolveTestResponse
 import rs.playgroundmath.playgroundmath.service.TaskService
 
 @RestController
@@ -17,5 +19,10 @@ class TaskController(
     @PostMapping
     fun generateTasks(@RequestBody generateTasksRequest: GenerateTasksRequest): GenerateTasksResponse {
         return taskService.generateTasks(generateTasksRequest)
+    }
+
+    @PostMapping("/solve")
+    fun solveTest(@RequestBody solveTestRequest: SolveTestRequest): SolveTestResponse {
+        return taskService.solveTest(solveTestRequest)
     }
 }
