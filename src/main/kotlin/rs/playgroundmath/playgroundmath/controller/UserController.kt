@@ -1,11 +1,9 @@
 package rs.playgroundmath.playgroundmath.controller
 
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import rs.playgroundmath.playgroundmath.model.User
 import rs.playgroundmath.playgroundmath.payload.request.UserRegisterRequest
+import rs.playgroundmath.playgroundmath.payload.response.DeleteUserResponse
 import rs.playgroundmath.playgroundmath.payload.response.UserRegisterResponse
 import rs.playgroundmath.playgroundmath.service.UserService
 
@@ -20,6 +18,11 @@ class UserController(
         val user = userService.createUser(userRegisterRequest)
         return user.toResponse()
     }
+
+    @DeleteMapping("/delete/{userId}")
+    fun delete(@PathVariable userId: Long): DeleteUserResponse =
+        userService.deleteUser(userId)
+
 
     private fun User.toResponse(): UserRegisterResponse {
         return UserRegisterResponse(

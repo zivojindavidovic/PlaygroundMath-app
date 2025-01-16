@@ -4,9 +4,14 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Service
 import rs.playgroundmath.playgroundmath.exceptions.AccountMaximumPerUserException
+import rs.playgroundmath.playgroundmath.exceptions.AccountNotFoundException
+import rs.playgroundmath.playgroundmath.exceptions.UserNotFoundException
 import rs.playgroundmath.playgroundmath.model.Account
 import rs.playgroundmath.playgroundmath.model.User
 import rs.playgroundmath.playgroundmath.payload.request.AccountCreateRequest
+import rs.playgroundmath.playgroundmath.payload.request.UpdateAccountRequest
+import rs.playgroundmath.playgroundmath.payload.response.AccountDeleteResponse
+import rs.playgroundmath.playgroundmath.payload.response.UpdateAccountResponse
 import rs.playgroundmath.playgroundmath.repository.AccountRepository
 import rs.playgroundmath.playgroundmath.repository.UserRepository
 
@@ -30,6 +35,46 @@ class AccountService(
 
         val account = accountRepository.save(Account(username = accountCreateRequest.username, user = user))
         return account
+    }
+
+    fun deleteAccount(accountId: Long): AccountDeleteResponse {
+        val foundAccount = accountRepository.findById(accountId)
+
+        if (foundAccount.isPresent) {
+            accountRepository.delete(foundAccount.get())
+        } else {
+            throw AccountNotFoundException("Account with id: $accountId now found")
+        }
+
+        return AccountDeleteResponse("Account ${foundAccount.get().username} delete successfully")
+    }
+
+    fun updateAccount(updateAccountRequest: UpdateAccountRequest): UpdateAccountResponse {
+        val foundAccount = accountRepository.findById(updateAccountRequest.accountId)
+
+        if (foundAccount.isPresent) {
+            val updatedAccount = foundAccount.get().copy(
+                username = updateAccountRequest.username
+            )
+
+            accountRepository.save(updatedAccount)
+        } else {
+            throw AccountNotFoundException("Account ${foundAccount.get().accountId} not found")
+        }
+
+        return UpdateAccountResponse(foundAccount.get().accountId, updateAccountRequest.username, foundAccount.get().points)
+    }
+
+    fun getAccountsRelatedToUserId(userId: Long): List<Account> {
+        val foundUser = userRepository.findById(userId)
+
+        return if (foundUser.isPresent) {
+            val user = foundUser.get()
+
+            accountRepository.findAllByUser(user)
+        } else {
+            throw UserNotFoundException("User with $userId not found")
+        }
     }
 
     private fun countAccountsByUserId(): Long? {

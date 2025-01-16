@@ -8,4 +8,6 @@ import rs.playgroundmath.playgroundmath.model.User
 @Repository
 interface AccountRepository: JpaRepository<Account, Long> {
     fun countByUser(user: User): Long
+
+    fun findAllByUser(user: User): List<Account>
 }
