@@ -36,5 +36,8 @@ class UserService(
         return DeleteUserResponse("User successfully deleted")
     }
 
+    fun getUserByEmail(email: String): User? =
+        userRepository.findByEmail(email)
+
     private fun encoder(): PasswordEncoder = BCryptPasswordEncoder()
 }
