@@ -1,11 +1,13 @@
 package rs.playgroundmath.playgroundmath.service
 
 import org.springframework.stereotype.Service
+import rs.playgroundmath.playgroundmath.model.Task
 import rs.playgroundmath.playgroundmath.model.TaskStatus
 import rs.playgroundmath.playgroundmath.payload.request.GenerateTasksRequest
 import rs.playgroundmath.playgroundmath.payload.request.SolveTestRequest
 import rs.playgroundmath.playgroundmath.payload.response.GenerateTasksResponse
 import rs.playgroundmath.playgroundmath.payload.response.SolveTestResponse
+import rs.playgroundmath.playgroundmath.payload.response.TaskResponse
 import rs.playgroundmath.playgroundmath.repository.AccountRepository
 import rs.playgroundmath.playgroundmath.repository.TaskRepository
 import kotlin.random.Random
@@ -19,7 +21,7 @@ class TaskService(
 ) {
 
     fun generateTasks(generateTasksRequest: GenerateTasksRequest): GenerateTasksResponse {
-        val tasks: MutableList<String> = mutableListOf()
+//        val tasks: MutableList<String> = mutableListOf()
 
         for (i in 1..50) {
             val firstNumber = Random.nextLong(generateTasksRequest.numberOneFrom, generateTasksRequest.numberOneTo)
@@ -42,11 +44,25 @@ class TaskService(
                 saveTaskToDb(task, result, generateTasksRequest.accountId)
             }
 
-            tasks.add(task)
+//            tasks.add(task)
         }
 
-        return GenerateTasksResponse(tasks)
+        val last30Tasks = findLast30NotCompletedTasks()
+
+        return GenerateTasksResponse(last30Tasks.map {
+            it.toResponse()
+        })
     }
+
+    private fun Task.toResponse(): TaskResponse =
+        TaskResponse(
+            taskId = this.taskId,
+            task = this.task
+        )
+
+
+    private fun findLast30NotCompletedTasks(): List<Task> =
+        taskRepository.findTop30ByAccountAndStatusOrderByTaskIdDesc(5, TaskStatus.NO)
 
     fun solveTest(solveTestRequest: SolveTestRequest): SolveTestResponse {
         var pointsForTest: Long = 0
