@@ -13,7 +13,8 @@ class AuthenticationService(
     private val authenticationManager: AuthenticationManager,
     private val userDetailsService: CustomUserDetailsService,
     private val tokenService: TokenService,
-    private val jwtProperties: JwtProperties
+    private val jwtProperties: JwtProperties,
+    private val userService: UserService
 ) {
 
     fun authentication(authRequest: AuthenticationRequest): AuthenticationResponse {
@@ -30,8 +31,12 @@ class AuthenticationService(
             expirationDate = Date(System.currentTimeMillis() + jwtProperties.accessTokenExpiration)
         )
 
+        val loggedInUser = userService.getUserByEmail(user.username)
+
         return AuthenticationResponse(
-            accessToken = accessToken
+            accessToken = accessToken,
+            userId = loggedInUser!!.userId,
+            email = loggedInUser.email
         )
     }
 }
