@@ -6,15 +6,20 @@ import org.springframework.stereotype.Service
 import rs.playgroundmath.playgroundmath.exceptions.UserAlreadyExistsException
 import rs.playgroundmath.playgroundmath.exceptions.UserNotFoundException
 import rs.playgroundmath.playgroundmath.model.Role
-import rs.playgroundmath.playgroundmath.model.RoleType
+import rs.playgroundmath.playgroundmath.enums.RoleType
+import rs.playgroundmath.playgroundmath.model.Course
 import rs.playgroundmath.playgroundmath.model.User
 import rs.playgroundmath.playgroundmath.payload.request.UserRegisterRequest
 import rs.playgroundmath.playgroundmath.payload.response.DeleteUserResponse
+import rs.playgroundmath.playgroundmath.payload.response.UserTeachersResponse
 import rs.playgroundmath.playgroundmath.repository.UserRepository
+import rs.playgroundmath.playgroundmath.repository.UserTeacherCourseResponse
 
 @Service
 class UserService(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val roleService: RoleService,
+    private val courseService: CourseService
 ) {
     fun createUser(userRegisterRequest: UserRegisterRequest): User {
         val foundUser = userRepository.findByEmail(userRegisterRequest.email)
@@ -46,6 +51,36 @@ class UserService(
 
     fun getUserByEmail(email: String): User? =
         userRepository.findByEmail(email)
+
+    fun getAllTeachers(): List<UserTeachersResponse> {
+        val role = roleService.findRoleByRoleType(RoleType.TEACHER)
+
+        val teachers = userRepository.findAllByRole_RoleId(roleId = role!!.roleId)
+        return teachers.map {
+            it.toTeacherResponse()
+        }
+    }
+
+    fun getAllTeacherCourses(teacherId: Long): List<UserTeacherCourseResponse> {
+        val courses = courseService.findAllByUserId(teacherId)
+        return courses.map {
+            it.toUserTeacherCourseResponse()
+        }
+    }
+
+    private fun Course.toUserTeacherCourseResponse(): UserTeacherCourseResponse =
+        UserTeacherCourseResponse(
+            courseId = this.courseId,
+            age = this.age.toLong(),
+            dueDate = this.dueDate.toString()
+        )
+
+    private fun User.toTeacherResponse(): UserTeachersResponse =
+        UserTeachersResponse(
+            teacherId = this.userId,
+            teacherEmail = this.email,
+            numberOfActiveCourses = 0
+        )
 
     private fun encoder(): PasswordEncoder = BCryptPasswordEncoder()
 }

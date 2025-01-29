@@ -4,6 +4,7 @@ import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.stereotype.Service
 import rs.playgroundmath.playgroundmath.config.JwtProperties
+import rs.playgroundmath.playgroundmath.enums.RoleType
 import rs.playgroundmath.playgroundmath.payload.request.AuthenticationRequest
 import rs.playgroundmath.playgroundmath.payload.response.AuthenticationResponse
 import java.util.*
@@ -32,11 +33,13 @@ class AuthenticationService(
         )
 
         val loggedInUser = userService.getUserByEmail(user.username)
+        val isTeacher = loggedInUser!!.role.roleType == RoleType.TEACHER
 
         return AuthenticationResponse(
             accessToken = accessToken,
             userId = loggedInUser!!.userId,
-            email = loggedInUser.email
+            email = loggedInUser.email,
+            isTeacher = isTeacher
         )
     }
 }

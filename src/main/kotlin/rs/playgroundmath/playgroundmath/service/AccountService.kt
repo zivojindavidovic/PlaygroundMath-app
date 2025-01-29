@@ -1,5 +1,6 @@
 package rs.playgroundmath.playgroundmath.service
 
+import jakarta.transaction.Transactional
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Service
@@ -12,13 +13,17 @@ import rs.playgroundmath.playgroundmath.payload.request.AccountCreateRequest
 import rs.playgroundmath.playgroundmath.payload.request.UpdateAccountRequest
 import rs.playgroundmath.playgroundmath.payload.response.AccountDeleteResponse
 import rs.playgroundmath.playgroundmath.payload.response.UpdateAccountResponse
+import rs.playgroundmath.playgroundmath.repository.AccountCourseRepository
 import rs.playgroundmath.playgroundmath.repository.AccountRepository
+import rs.playgroundmath.playgroundmath.repository.TestRepository
 import rs.playgroundmath.playgroundmath.repository.UserRepository
 
 @Service
 class AccountService(
     private val accountRepository: AccountRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val testRepository: TestRepository,
+    private val accountCourseRepository: AccountCourseRepository
 ) {
 
     fun createAccount(accountCreateRequest: AccountCreateRequest): Account {
@@ -33,20 +38,19 @@ class AccountService(
         val currentUser = SecurityContextHolder.getContext().authentication.principal as UserDetails
         val user = findUserByEmail(currentUser)
 
-        val account = accountRepository.save(Account(username = accountCreateRequest.username, user = user))
+        val account = accountRepository.save(Account(username = accountCreateRequest.username, age = accountCreateRequest.age, user = user))
         return account
     }
 
+    @Transactional
     fun deleteAccount(accountId: Long): AccountDeleteResponse {
-        val foundAccount = accountRepository.findById(accountId)
-
-        if (foundAccount.isPresent) {
-            accountRepository.delete(foundAccount.get())
-        } else {
-            throw AccountNotFoundException("Account with id: $accountId now found")
+        val account = accountRepository.findById(accountId).orElseThrow {
+            AccountNotFoundException("Account with id: $accountId not found")
         }
 
-        return AccountDeleteResponse("Account ${foundAccount.get().username} delete successfully")
+        accountRepository.delete(account)
+
+        return AccountDeleteResponse("Account ${account.username} deleted successfully")
     }
 
     fun updateAccount(updateAccountRequest: UpdateAccountRequest): UpdateAccountResponse {
