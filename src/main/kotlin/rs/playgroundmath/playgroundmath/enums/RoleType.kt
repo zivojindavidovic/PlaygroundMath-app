@@ -1,4 +1,4 @@
-package rs.playgroundmath.playgroundmath.model
+package rs.playgroundmath.playgroundmath.enums
 
 enum class RoleType {
     PARENT,

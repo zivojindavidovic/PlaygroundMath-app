@@ -2,6 +2,7 @@ package rs.playgroundmath.playgroundmath.config
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpMethod
 import org.springframework.security.authentication.AuthenticationProvider
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
@@ -10,7 +11,6 @@ import org.springframework.security.web.DefaultSecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
-import org.springframework.web.filter.CorsFilter
 
 @Configuration
 @EnableWebSecurity
@@ -19,9 +19,9 @@ class SecurityConfiguration(
 ) {
 
     @Bean
-    fun corsFilter(): CorsFilter {
+    fun corsConfigurationSource(): UrlBasedCorsConfigurationSource {
         val corsConfiguration = CorsConfiguration()
-        corsConfiguration.allowedOrigins = listOf("http://0.0.0.0:5173")
+        corsConfiguration.allowedOrigins = listOf("http://localhost:5173", "http://0.0.0.0:5173")
         corsConfiguration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
         corsConfiguration.allowedHeaders = listOf("*")
         corsConfiguration.allowCredentials = true
@@ -29,8 +29,7 @@ class SecurityConfiguration(
 
         val source = UrlBasedCorsConfigurationSource()
         source.registerCorsConfiguration("/**", corsConfiguration)
-
-        return CorsFilter(source)
+        return source
     }
 
     @Bean
@@ -40,10 +39,12 @@ class SecurityConfiguration(
     ): DefaultSecurityFilterChain =
         http
             .csrf { it.disable() }
-            .cors {  }
+            .cors { it.configurationSource(corsConfigurationSource()) }
             .authorizeHttpRequests {
                 it
                     .requestMatchers("/api/v1/user/create", "/api/v1/auth/login", "/error")
+                    .permitAll()
+                    .requestMatchers(HttpMethod.OPTIONS, "/**")
                     .permitAll()
                     .anyRequest()
                     .fullyAuthenticated()
