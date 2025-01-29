@@ -16,13 +16,13 @@ class TaskController(
     private val taskService: TaskService
 ) {
 
-    @PostMapping
-    fun generateTasks(@RequestBody generateTasksRequest: GenerateTasksRequest): GenerateTasksResponse {
-        return taskService.generateTasks(generateTasksRequest)
-    }
-
-    @PostMapping("/solve")
-    fun solveTest(@RequestBody solveTestRequest: SolveTestRequest): SolveTestResponse {
-        return taskService.solveTest(solveTestRequest)
-    }
+//    @PostMapping
+//    fun generateTasks(@RequestBody generateTasksRequest: GenerateTasksRequest): GenerateTasksResponse {
+//        return taskService.generateTasks(generateTasksRequest)
+//    }
+//
+//    @PostMapping("/solve")
+//    fun solveTest(@RequestBody solveTestRequest: SolveTestRequest): SolveTestResponse {
+//        return taskService.solveTest(solveTestRequest)
+//    }
 }
