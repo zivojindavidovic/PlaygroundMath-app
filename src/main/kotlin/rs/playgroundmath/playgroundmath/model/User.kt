@@ -1,7 +1,8 @@
 package rs.playgroundmath.playgroundmath.model
 
 import jakarta.persistence.*
-import java.time.LocalDateTime
+import rs.playgroundmath.playgroundmath.enums.RoleType
+import rs.playgroundmath.playgroundmath.enums.Status
 
 @Entity
 @Table(name = "user")
@@ -18,19 +19,13 @@ data class User(
     val password: String = "",
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, columnDefinition = "enum('active', 'pending', 'suspended', 'deleted')")
+    @Column(name = "status", nullable = false, columnDefinition = "ENUM('ACTIVE', 'PENDING', 'SUSPENDED', 'DELETED')")
     val status: Status = Status.PENDING,
-
-    @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    val createdAt: LocalDateTime = LocalDateTime.now(),
-
-    @Column(name = "updated_at", nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    val updatedAt: LocalDateTime = LocalDateTime.now(),
-
-    @OneToMany(mappedBy = "user", cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
-    val accounts: List<Account> = listOf(),
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id", nullable = false)
-    val role: Role = Role(roleId = 2, roleType = RoleType.PARENT)
+    val role: Role = Role(roleId = 2, roleType = RoleType.PARENT),
+
+    @OneToMany(mappedBy = "user", cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
+    val accounts: List<Account> = listOf()
 )

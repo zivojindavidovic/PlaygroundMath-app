@@ -10,20 +10,22 @@ data class Task(
     @Column(name = "task_id", nullable = false)
     val taskId: Long = 0,
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "account_id", nullable = false)
-    val account: Account? = null,
+    @Column(name = "first_number", nullable = false)
+    val firstNumber: String = "",
 
-    @Column(name = "task", nullable = false)
-    val task: String = "",
+    @Column(name = "second_number", nullable = false)
+    val secondNumber: String = "",
+
+    @Column(name = "operation", nullable = false)
+    val operation: String = "",
 
     @Column(name = "result", nullable = false)
-    val result: Double = 0.0,
+    val result: String = "",
 
     @Column(name = "points", nullable = false)
     val points: Int = 0,
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "is_completed", nullable = false)
-    val isCompleted: TaskStatus = TaskStatus.NO
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "test_id", nullable = false)
+    val test: Test? = null
 )
