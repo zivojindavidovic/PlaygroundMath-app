@@ -1,6 +1,6 @@
 package rs.playgroundmath.playgroundmath.payload.request
 
-import rs.playgroundmath.playgroundmath.model.RoleType
+import rs.playgroundmath.playgroundmath.enums.RoleType
 
 data class UserRegisterRequest(
     val email: String,
