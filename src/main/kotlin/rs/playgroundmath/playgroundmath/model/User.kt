@@ -28,5 +28,9 @@ data class User(
     val updatedAt: LocalDateTime = LocalDateTime.now(),
 
     @OneToMany(mappedBy = "user", cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
-    val accounts: List<Account> = listOf()
+    val accounts: List<Account> = listOf(),
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "role_id", nullable = false)
+    val role: Role = Role(roleId = 2, roleType = RoleType.PARENT)
 )

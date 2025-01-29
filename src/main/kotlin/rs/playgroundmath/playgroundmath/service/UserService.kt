@@ -5,6 +5,8 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import rs.playgroundmath.playgroundmath.exceptions.UserAlreadyExistsException
 import rs.playgroundmath.playgroundmath.exceptions.UserNotFoundException
+import rs.playgroundmath.playgroundmath.model.Role
+import rs.playgroundmath.playgroundmath.model.RoleType
 import rs.playgroundmath.playgroundmath.model.User
 import rs.playgroundmath.playgroundmath.payload.request.UserRegisterRequest
 import rs.playgroundmath.playgroundmath.payload.response.DeleteUserResponse
@@ -21,7 +23,13 @@ class UserService(
             throw UserAlreadyExistsException("User with email ${userRegisterRequest.email} already exists")
         }
 
-        return userRepository.save(User(email = userRegisterRequest.email, password = encoder().encode(userRegisterRequest.password)))
+        var user = User(email = userRegisterRequest.email, password = encoder().encode(userRegisterRequest.password))
+
+        if (userRegisterRequest.accountType == RoleType.TEACHER) {
+           user = user.copy(role = Role(roleId = 3, RoleType.TEACHER))
+        }
+
+        return userRepository.save(user)
     }
 
     fun deleteUser(userId: Long): DeleteUserResponse {
