@@ -32,6 +32,7 @@ CREATE TABLE `account` (
 CREATE TABLE `account_course` (
                                   `account_id` BIGINT NOT NULL,
                                   `course_id` BIGINT NOT NULL,
+                                  `status` ENUM('PENDING', 'ACCEPTED', 'DECLINED') NOT NULL DEFAULT 'PENDING',
                                   PRIMARY KEY (`account_id`, `course_id`),
                                   FOREIGN KEY (`account_id`) REFERENCES `account`(`account_id`) ON DELETE CASCADE ON UPDATE CASCADE,
                                   FOREIGN KEY (`course_id`) REFERENCES `course`(`course_id`) ON DELETE CASCADE ON UPDATE CASCADE

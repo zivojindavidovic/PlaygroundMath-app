@@ -2,19 +2,26 @@ package rs.playgroundmath.playgroundmath.service
 
 import org.springframework.stereotype.Service
 import rs.playgroundmath.playgroundmath.common.Functions
+import rs.playgroundmath.playgroundmath.enums.AccountCourseStatus
+import rs.playgroundmath.playgroundmath.model.AccountCourse
 import rs.playgroundmath.playgroundmath.model.Course
 import rs.playgroundmath.playgroundmath.model.Test
+import rs.playgroundmath.playgroundmath.payload.request.ApplyForCourseRequest
 import rs.playgroundmath.playgroundmath.payload.request.CourseCreateRequest
+import rs.playgroundmath.playgroundmath.payload.request.ResolveApplicationRequest
+import rs.playgroundmath.playgroundmath.payload.response.ApplicationForCourseResponse
+import rs.playgroundmath.playgroundmath.payload.response.CourseApplicationResponse
 import rs.playgroundmath.playgroundmath.payload.response.CourseTestsResponse
-import rs.playgroundmath.playgroundmath.repository.CourseRepository
-import rs.playgroundmath.playgroundmath.repository.TestRepository
-import rs.playgroundmath.playgroundmath.repository.UserRepository
+import rs.playgroundmath.playgroundmath.payload.response.ResolveApplicationResponse
+import rs.playgroundmath.playgroundmath.repository.*
 
 @Service
 class CourseService(
     private val courseRepository: CourseRepository,
     private val userRepository: UserRepository,
-    private val testRepository: TestRepository
+    private val testRepository: TestRepository,
+    private val accountRepository: AccountRepository,
+    private val accountCourseRepository: AccountCourseRepository
 ) {
 
     fun createCourse(courseCreateRequest: CourseCreateRequest): Course {
@@ -36,6 +43,52 @@ class CourseService(
             it.toCourseTestsResponse()
         }
     }
+
+    fun applyForCourse(applyForCourseRequest: ApplyForCourseRequest): ApplicationForCourseResponse {
+        val foundCourse = courseRepository.findByCourseId(applyForCourseRequest.courseId)
+        val foundAccount = accountRepository.findByAccountId(applyForCourseRequest.accountId)
+
+        accountCourseRepository.save(AccountCourse(account = foundAccount, course = foundCourse, status = AccountCourseStatus.PENDING))
+
+        return ApplicationForCourseResponse(message = "Application sent successfully")
+    }
+
+    fun getCoursesApplications(userId: Long): List<CourseApplicationResponse> {
+        val foundApplications = accountCourseRepository.findAllByCourse_User_UserIdAndStatus(userId, AccountCourseStatus.PENDING)
+
+        return foundApplications.map {
+            it.toCourseApplicationResponse()
+        }
+    }
+
+    fun resolveApplication(resolveApplicationRequest: ResolveApplicationRequest): ResolveApplicationResponse {
+        val foundAccountCourse = accountCourseRepository.findByCourse_CourseIdAndAccount_AccountId(resolveApplicationRequest.courseId, resolveApplicationRequest.accountId)
+
+        return if (resolveApplicationRequest.decision) {
+            val updatedAccountCourse = foundAccountCourse.copy(
+                status = AccountCourseStatus.ACCEPTED
+            )
+
+            accountCourseRepository.save(updatedAccountCourse)
+            ResolveApplicationResponse(message = "Application accepted")
+        } else {
+            val updatedAccountCourse = foundAccountCourse.copy(
+                status = AccountCourseStatus.DECLINED
+            )
+
+            accountCourseRepository.save(updatedAccountCourse)
+            ResolveApplicationResponse(message = "Application declined")
+        }
+    }
+
+    private fun AccountCourse.toCourseApplicationResponse(): CourseApplicationResponse =
+        CourseApplicationResponse(
+            courseId = this.course!!.courseId,
+            courseAge = this.course.age,
+            accountAge = this.account!!.age,
+            accountId = this.account.accountId,
+            accountUsername = this.account.username
+        )
 
     private fun Test.toCourseTestsResponse(): CourseTestsResponse =
         CourseTestsResponse(
