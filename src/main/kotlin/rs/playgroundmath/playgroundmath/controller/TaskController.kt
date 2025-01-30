@@ -1,6 +1,5 @@
 package rs.playgroundmath.playgroundmath.controller
 
-import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -8,7 +7,6 @@ import org.springframework.web.bind.annotation.RestController
 import rs.playgroundmath.playgroundmath.payload.request.GenerateTasksRequest
 import rs.playgroundmath.playgroundmath.payload.request.SolveTestRequest
 import rs.playgroundmath.playgroundmath.payload.request.TaskGetUnresolvedRequest
-import rs.playgroundmath.playgroundmath.payload.response.GenerateTasksResponse
 import rs.playgroundmath.playgroundmath.payload.response.SolveTestResponse
 import rs.playgroundmath.playgroundmath.service.TaskService
 
@@ -27,9 +25,9 @@ class TaskController(
     fun getAccountRelatedTest(@RequestBody taskGetUnresolvedRequest: TaskGetUnresolvedRequest): Any? {
         return taskService.getUnresolvedTestByAccountId(taskGetUnresolvedRequest.accountId)
     }
-//
-//    @PostMapping("/solve")
-//    fun solveTest(@RequestBody solveTestRequest: SolveTestRequest): SolveTestResponse {
-//        return taskService.solveTest(solveTestRequest)
-//    }
+
+    @PostMapping("/solve")
+    fun solveTest(@RequestBody solveTestRequest: SolveTestRequest): SolveTestResponse {
+        return taskService.solveTest(solveTestRequest)
+    }
 }
