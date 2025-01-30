@@ -11,4 +11,6 @@ interface TestRepository: JpaRepository<Test, Long> {
     fun countByAccount_AccountIdAndIsCompleted(accountId: Long, isCompleted: YesNo): Long
 
     fun findByAccount_AccountIdAndIsCompleted(accountId: Long, isCompleted: YesNo): Test
+
+    fun findAllByCourse_CourseId(courseId: Long): List<Test>
 }

@@ -8,6 +8,7 @@ import rs.playgroundmath.playgroundmath.payload.request.GenerateTasksRequest
 import rs.playgroundmath.playgroundmath.payload.request.SolveTestRequest
 import rs.playgroundmath.playgroundmath.payload.response.*
 import rs.playgroundmath.playgroundmath.repository.AccountRepository
+import rs.playgroundmath.playgroundmath.repository.CourseRepository
 import rs.playgroundmath.playgroundmath.repository.TaskRepository
 import rs.playgroundmath.playgroundmath.repository.TestRepository
 import kotlin.random.Random
@@ -18,14 +19,19 @@ typealias ApplicationTask = rs.playgroundmath.playgroundmath.model.Task
 class TaskService(
     private val taskRepository: TaskRepository,
     private val accountRepository: AccountRepository,
-    private val testRepository: TestRepository
+    private val testRepository: TestRepository,
+    private val courseRepository: CourseRepository
 ) {
 
     fun generateTasks(generateTasksRequest: GenerateTasksRequest): Any? {
         return if (generateTasksRequest.testType == "pdf") {
             generatePdfTasks(generateTasksRequest)
-        } else {
+        } else if (generateTasksRequest.testType == "online") {
             generateOnlineTasks(generateTasksRequest)
+        } else if (generateTasksRequest.testType == "coursePdf") {
+            generateCoursePdfTestTasks(generateTasksRequest)
+        } else {
+            generateCourseOnlineTestTasks(generateTasksRequest)
         }
     }
 
@@ -46,12 +52,60 @@ class TaskService(
     }
 
     private fun generateOnlineTasks(generateTasksRequest: GenerateTasksRequest): Any? {
-        if (countUnresolvedTestsByAccountId(generateTasksRequest.accountId) > 0) {
+        if (countUnresolvedTestsByAccountId(generateTasksRequest.accountId!!) > 0) {
             return OnlineTaskResponse("Account already has unresolved test")
         }
 
         val account = accountRepository.findById(generateTasksRequest.accountId)
         val test = testRepository.save(Test(account = account.get(), isCompleted = YesNo.NO))
+
+        for(i in 1..20) {
+            val firstNumber = Random.nextLong(generateTasksRequest.numberOneFrom, generateTasksRequest.numberOneTo)
+            val secondNumber = Random.nextLong(generateTasksRequest.numberTwoFrom, generateTasksRequest.numberTwoTo)
+
+            val randomOperation = generateTasksRequest.operations.random()
+
+            val result = when (randomOperation) {
+                "+" -> firstNumber + secondNumber
+                "-" -> firstNumber - secondNumber
+                "*" -> firstNumber * secondNumber
+                "/" -> firstNumber / secondNumber
+                else -> 0.0
+            }
+
+            val points = when (randomOperation) {
+                "+" -> 1
+                "-" -> 2
+                "*" -> 3
+                "/" -> 4
+                else -> 1
+            }
+
+            taskRepository.save(Task(firstNumber = firstNumber.toString(), secondNumber = secondNumber.toString(), operation = randomOperation, result = result.toString(), points = points, test = test))
+        }
+
+        return OnlineTaskResponse("Test created")
+    }
+
+    private fun generateCoursePdfTestTasks(generateTasksRequest: GenerateTasksRequest): PdfTaskResponse {
+        val tasks = mutableListOf<String>()
+        for (i in 1..20) {
+            val firstNumber = Random.nextLong(generateTasksRequest.numberOneFrom, generateTasksRequest.numberOneTo)
+            val secondNumber = Random.nextLong(generateTasksRequest.numberTwoFrom, generateTasksRequest.numberTwoTo)
+
+            val randomOperation = generateTasksRequest.operations.random()
+
+            val task = "$firstNumber $randomOperation $secondNumber = "
+
+            tasks.add(task)
+        }
+
+        return PdfTaskResponse(tasks = tasks)
+    }
+
+    private fun generateCourseOnlineTestTasks(generateTasksRequest: GenerateTasksRequest): OnlineTaskResponse {
+        val course = courseRepository.findByCourseId(generateTasksRequest.courseId!!)
+        val test = testRepository.save(Test(course = course))
 
         for(i in 1..20) {
             val firstNumber = Random.nextLong(generateTasksRequest.numberOneFrom, generateTasksRequest.numberOneTo)

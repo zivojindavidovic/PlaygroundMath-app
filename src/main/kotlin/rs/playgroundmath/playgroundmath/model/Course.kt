@@ -22,6 +22,6 @@ data class Course(
     @JoinColumn(name = "user_id", nullable = true)
     val user: User? = null,
 
-//    @ManyToMany(mappedBy = "courses")
-//    val accounts: List<Account> = listOf()
+    @OneToMany(mappedBy = "course", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
+    val tests: MutableList<Test> = mutableListOf()
 )

@@ -7,5 +7,6 @@ data class GenerateTasksRequest(
     val numberTwoTo: Long,
     val operations: MutableList<String> = mutableListOf("+"),
     val testType: String = "pdf",
-    val accountId: Long = 0
+    val accountId: Long? = null,
+    val courseId: Long? = null
 )
