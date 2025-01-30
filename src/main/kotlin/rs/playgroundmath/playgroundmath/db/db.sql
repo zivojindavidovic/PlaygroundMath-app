@@ -40,7 +40,10 @@ CREATE TABLE `account_course` (
 CREATE TABLE `test` (
                         `test_id` BIGINT AUTO_INCREMENT PRIMARY KEY,
                         `course_id` BIGINT NULL,
-                        FOREIGN KEY (`course_id`) REFERENCES `course`(`course_id`) ON DELETE SET NULL ON UPDATE CASCADE
+                        `account_id` BIGINT NULL,
+                        `is_completed` ENUM('YES', 'NO') NULL DEFAULT NULL,
+                        FOREIGN KEY (`course_id`) REFERENCES `course`(`course_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+                        FOREIGN KEY (`account_id`) REFERENCES `account`(`account_id`) ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 CREATE TABLE `task` (

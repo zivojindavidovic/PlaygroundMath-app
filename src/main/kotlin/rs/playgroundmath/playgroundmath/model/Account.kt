@@ -23,8 +23,8 @@ data class Account(
     @JoinColumn(name = "user_id", nullable = false)
     val user: User? = null,
 
-//    @OneToMany(mappedBy = "account", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
-//    val tests: MutableList<Test> = mutableListOf(),
+    @OneToMany(mappedBy = "account", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
+    val tests: MutableList<Test> = mutableListOf(),
 
     @ManyToMany
     @JoinTable(

@@ -1,6 +1,7 @@
 package rs.playgroundmath.playgroundmath.model
 
 import jakarta.persistence.*
+import rs.playgroundmath.playgroundmath.enums.YesNo
 
 @Entity
 @Table(name = "test")
@@ -15,9 +16,10 @@ data class Test(
     val course: Course? = null,
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "account_id", nullable = false)
+    @JoinColumn(name = "account_id", nullable = true)
     val account: Account? = null,
 
-//    @OneToMany(mappedBy = "test", cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
-//    val tasks: List<Task>? = null
+    @Column(name = "is_completed", nullable = true, columnDefinition = "ENUM('YES', 'NO')")
+    @Enumerated(EnumType.STRING)
+    val isCompleted: YesNo? = null
 )
