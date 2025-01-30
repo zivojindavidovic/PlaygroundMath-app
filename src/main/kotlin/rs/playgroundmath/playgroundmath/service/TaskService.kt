@@ -6,10 +6,7 @@ import rs.playgroundmath.playgroundmath.model.Task
 import rs.playgroundmath.playgroundmath.model.Test
 import rs.playgroundmath.playgroundmath.payload.request.GenerateTasksRequest
 import rs.playgroundmath.playgroundmath.payload.request.SolveTestRequest
-import rs.playgroundmath.playgroundmath.payload.response.OnlineTaskResponse
-import rs.playgroundmath.playgroundmath.payload.response.PdfTaskResponse
-import rs.playgroundmath.playgroundmath.payload.response.SolveTestResponse
-import rs.playgroundmath.playgroundmath.payload.response.TaskGetUnresolvedResponse
+import rs.playgroundmath.playgroundmath.payload.response.*
 import rs.playgroundmath.playgroundmath.repository.AccountRepository
 import rs.playgroundmath.playgroundmath.repository.TaskRepository
 import rs.playgroundmath.playgroundmath.repository.TestRepository
@@ -103,8 +100,8 @@ class TaskService(
         return TaskGetUnresolvedResponse()
     }
 
-    private fun ApplicationTask.toTaskResponse(): rs.playgroundmath.playgroundmath.payload.response.TaskResponse =
-        rs.playgroundmath.playgroundmath.payload.response.TaskResponse(
+    private fun ApplicationTask.toTaskResponse(): TaskResponse =
+        TaskResponse(
             taskId = this.taskId,
             task = this.firstNumber + " " + this.operation + " " + this.secondNumber
         )
