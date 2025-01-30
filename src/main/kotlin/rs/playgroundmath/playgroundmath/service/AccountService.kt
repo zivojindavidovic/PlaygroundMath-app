@@ -12,6 +12,7 @@ import rs.playgroundmath.playgroundmath.model.User
 import rs.playgroundmath.playgroundmath.payload.request.AccountCreateRequest
 import rs.playgroundmath.playgroundmath.payload.request.UpdateAccountRequest
 import rs.playgroundmath.playgroundmath.payload.response.AccountDeleteResponse
+import rs.playgroundmath.playgroundmath.payload.response.AccountRankListResponse
 import rs.playgroundmath.playgroundmath.payload.response.UpdateAccountResponse
 import rs.playgroundmath.playgroundmath.repository.AccountCourseRepository
 import rs.playgroundmath.playgroundmath.repository.AccountRepository
@@ -80,6 +81,18 @@ class AccountService(
             throw UserNotFoundException("User with $userId not found")
         }
     }
+
+    fun getRankList(): List<AccountRankListResponse> =
+        accountRepository.findAllByOrderByPointsDesc().map {
+            it.toRankListResponse()
+        }
+
+    private fun Account.toRankListResponse(): AccountRankListResponse =
+        AccountRankListResponse(
+            accountId = this.accountId,
+            username = this.username,
+            points = this.points
+        )
 
     private fun countAccountsByUserId(): Long? {
         val currentUser = SecurityContextHolder.getContext().authentication.principal as UserDetails

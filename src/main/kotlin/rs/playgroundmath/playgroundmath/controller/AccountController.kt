@@ -39,6 +39,10 @@ class AccountController(
     fun getAccountsRelatedToUserId(@PathVariable userId: Long) =
         accountService.getAccountsRelatedToUserId(userId).toResponse()
 
+    @GetMapping("/rankList")
+    fun getRankList(): List<AccountRankListResponse> =
+        accountService.getRankList()
+
     private fun List<Account>.toResponse(): AccountRelatedToUserResponse =
         AccountRelatedToUserResponse(
             accounts = this.map { account ->
