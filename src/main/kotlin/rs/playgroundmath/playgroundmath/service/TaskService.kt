@@ -6,6 +6,7 @@ import rs.playgroundmath.playgroundmath.enums.TaskStatus
 import rs.playgroundmath.playgroundmath.payload.request.GenerateTasksRequest
 import rs.playgroundmath.playgroundmath.payload.request.SolveTestRequest
 import rs.playgroundmath.playgroundmath.payload.response.GenerateTasksResponse
+import rs.playgroundmath.playgroundmath.payload.response.PdfTaskResponse
 import rs.playgroundmath.playgroundmath.payload.response.SolveTestResponse
 import rs.playgroundmath.playgroundmath.payload.response.TaskResponse
 import rs.playgroundmath.playgroundmath.repository.AccountRepository
@@ -20,39 +21,28 @@ class TaskService(
     private val accountRepository: AccountRepository
 ) {
 
-//    fun generateTasks(generateTasksRequest: GenerateTasksRequest): GenerateTasksResponse {
-////        val tasks: MutableList<String> = mutableListOf()
-//
-//        for (i in 1..50) {
-//            val firstNumber = Random.nextLong(generateTasksRequest.numberOneFrom, generateTasksRequest.numberOneTo)
-//            val secondNumber = Random.nextLong(generateTasksRequest.numberTwoFrom, generateTasksRequest.numberTwoTo)
-//
-//            val randomOperation = generateTasksRequest.operations.random()
-//
-//            val task = "$firstNumber $randomOperation $secondNumber = "
-//
-//            var result: Double = 0.0
-//            if (generateTasksRequest.testType == "online") {
-//                result = when (randomOperation) {
-//                    "+" -> (firstNumber + secondNumber).toDouble()
-//                    "-" -> (firstNumber - secondNumber).toDouble()
-//                    "*" -> (firstNumber * secondNumber).toDouble()
-//                    "/" -> if (secondNumber != 0L) (firstNumber / secondNumber).toDouble() else Double.NaN  // Avoid division by zero
-//                    else -> 0.0
-//                }
-//
-//                saveTaskToDb(task, result, generateTasksRequest.accountId)
-//            }
-//
-////            tasks.add(task)
-//        }
-//
-//        val last30Tasks = findLast30NotCompletedTasks()
-//
-//        return GenerateTasksResponse(last30Tasks.map {
-//            it.toResponse()
-//        })
-//    }
+    fun generateTasks(generateTasksRequest: GenerateTasksRequest): Any {
+        return generatePdfTasks(generateTasksRequest)
+    }
+
+    private fun generatePdfTasks(generateTasksRequest: GenerateTasksRequest): PdfTaskResponse {
+        val tasks = mutableListOf<String>()
+        for (i in 1..20) {
+            val firstNumber = Random.nextLong(generateTasksRequest.numberOneFrom, generateTasksRequest.numberOneTo)
+            val secondNumber = Random.nextLong(generateTasksRequest.numberTwoFrom, generateTasksRequest.numberTwoTo)
+
+            val randomOperation = generateTasksRequest.operations.random()
+
+            val task = "$firstNumber $randomOperation $secondNumber = "
+
+            tasks.add(task)
+        }
+
+        return PdfTaskResponse(tasks = tasks)
+    }
+
+
+
 //
 //    private fun Task.toResponse(): TaskResponse =
 //        TaskResponse(
