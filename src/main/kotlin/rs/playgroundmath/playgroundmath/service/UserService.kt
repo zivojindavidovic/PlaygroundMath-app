@@ -7,10 +7,12 @@ import rs.playgroundmath.playgroundmath.exceptions.UserAlreadyExistsException
 import rs.playgroundmath.playgroundmath.exceptions.UserNotFoundException
 import rs.playgroundmath.playgroundmath.model.Role
 import rs.playgroundmath.playgroundmath.enums.RoleType
+import rs.playgroundmath.playgroundmath.model.Account
 import rs.playgroundmath.playgroundmath.model.Course
 import rs.playgroundmath.playgroundmath.model.User
 import rs.playgroundmath.playgroundmath.payload.request.UserRegisterRequest
 import rs.playgroundmath.playgroundmath.payload.response.DeleteUserResponse
+import rs.playgroundmath.playgroundmath.payload.response.UserAccountsResponse
 import rs.playgroundmath.playgroundmath.payload.response.UserTeachersResponse
 import rs.playgroundmath.playgroundmath.repository.UserRepository
 import rs.playgroundmath.playgroundmath.repository.UserTeacherCourseResponse
@@ -66,6 +68,19 @@ class UserService(
         return courses.map {
             it.toUserTeacherCourseResponse()
         }
+    }
+
+    fun getAllChildren(userId: Long): List<UserAccountsResponse> {
+        return userRepository.findByUserId(userId).accounts.map {
+            it.toUserAccountsResponse()
+        }
+    }
+
+    private fun Account.toUserAccountsResponse(): UserAccountsResponse {
+        return UserAccountsResponse(
+            accountId = this.accountId,
+            accountData = this.username + " " + this.age + "y"
+        )
     }
 
     private fun Course.toUserTeacherCourseResponse(): UserTeacherCourseResponse =
