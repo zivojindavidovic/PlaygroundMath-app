@@ -21,5 +21,8 @@ data class Test(
 
     @Column(name = "is_completed", nullable = true, columnDefinition = "ENUM('YES', 'NO')")
     @Enumerated(EnumType.STRING)
-    val isCompleted: YesNo? = null
+    val isCompleted: YesNo? = null,
+
+    @OneToMany(mappedBy = "test", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
+    val tasks: List<Task>? = null
 )

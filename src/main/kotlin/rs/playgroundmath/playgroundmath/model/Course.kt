@@ -23,5 +23,5 @@ data class Course(
     val user: User? = null,
 
     @OneToMany(mappedBy = "course", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
-    val tests: MutableList<Test> = mutableListOf()
+    val tests: List<Test> = emptyList()
 )

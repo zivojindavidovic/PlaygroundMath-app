@@ -5,14 +5,12 @@ import rs.playgroundmath.playgroundmath.common.Functions
 import rs.playgroundmath.playgroundmath.enums.AccountCourseStatus
 import rs.playgroundmath.playgroundmath.model.AccountCourse
 import rs.playgroundmath.playgroundmath.model.Course
+import rs.playgroundmath.playgroundmath.model.Task
 import rs.playgroundmath.playgroundmath.model.Test
 import rs.playgroundmath.playgroundmath.payload.request.ApplyForCourseRequest
 import rs.playgroundmath.playgroundmath.payload.request.CourseCreateRequest
 import rs.playgroundmath.playgroundmath.payload.request.ResolveApplicationRequest
-import rs.playgroundmath.playgroundmath.payload.response.ApplicationForCourseResponse
-import rs.playgroundmath.playgroundmath.payload.response.CourseApplicationResponse
-import rs.playgroundmath.playgroundmath.payload.response.CourseTestsResponse
-import rs.playgroundmath.playgroundmath.payload.response.ResolveApplicationResponse
+import rs.playgroundmath.playgroundmath.payload.response.*
 import rs.playgroundmath.playgroundmath.repository.*
 
 @Service
@@ -80,6 +78,46 @@ class CourseService(
             ResolveApplicationResponse(message = "Application declined")
         }
     }
+
+    fun getCoursesRelatedToAccount(accountId: Long): List<AccountAcceptedCourse> {
+        val foundAccountCourses = accountCourseRepository.findAllByAccount_AccountIdAndStatus(accountId, AccountCourseStatus.ACCEPTED)
+
+        return foundAccountCourses.map {
+            it.toAccountAcceptedCourse()
+        }
+    }
+
+    fun getUnresolvedTests(accountId: Long): List<CourseAccountTestsResponse> {
+        val foundAccountCourses = accountCourseRepository.findAllByAccount_AccountIdAndStatus(accountId, AccountCourseStatus.ACCEPTED)
+
+        val tmp = foundAccountCourses.map {
+            it.toCourseAccountTestsResponse()
+        }
+
+        return tmp
+    }
+
+    private fun AccountCourse.toCourseAccountTestsResponse(): CourseAccountTestsResponse =
+        CourseAccountTestsResponse(
+            courseId = this.course!!.courseId,
+            tests = this.course.tests.map {
+                it.tasks!!.map {
+                    it.toCourseTaskResponse()
+                }
+            }
+        )
+
+    private fun Task.toCourseTaskResponse(): CourseTaskResponse =
+        CourseTaskResponse(
+            taskId = this.taskId,
+            task = this.firstNumber + " " + this.operation + " " + this.secondNumber
+        )
+
+    private fun AccountCourse.toAccountAcceptedCourse(): AccountAcceptedCourse =
+        AccountAcceptedCourse(
+            courseId = this.course!!.courseId,
+            courseAge = this.course.age,
+        )
 
     private fun AccountCourse.toCourseApplicationResponse(): CourseApplicationResponse =
         CourseApplicationResponse(

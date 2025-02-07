@@ -53,6 +53,15 @@ class CourseController(
     fun resolveApplication(@RequestBody resolveApplicationRequest: ResolveApplicationRequest): ResolveApplicationResponse =
         courseService.resolveApplication(resolveApplicationRequest)
 
+    @GetMapping("/{accountId}/list")
+    fun getCoursesRelatedToAccount(@PathVariable accountId: Long):List<AccountAcceptedCourse> {
+        return courseService.getCoursesRelatedToAccount(accountId)
+    }
+
+    @GetMapping("{accountId}/unresolvedTests")
+    fun getUnresolvedTests(@PathVariable accountId: Long): List<CourseAccountTestsResponse> =
+        courseService.getUnresolvedTests(accountId)
+
     private fun Course.toResponse(): CreateCourseResponse {
         return CreateCourseResponse(
             courseId = this.courseId,
