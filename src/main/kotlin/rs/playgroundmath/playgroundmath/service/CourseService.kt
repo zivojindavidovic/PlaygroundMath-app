@@ -10,6 +10,7 @@ import rs.playgroundmath.playgroundmath.model.Test
 import rs.playgroundmath.playgroundmath.payload.request.ApplyForCourseRequest
 import rs.playgroundmath.playgroundmath.payload.request.CourseCreateRequest
 import rs.playgroundmath.playgroundmath.payload.request.ResolveApplicationRequest
+import rs.playgroundmath.playgroundmath.payload.request.SolveTestRequest
 import rs.playgroundmath.playgroundmath.payload.response.*
 import rs.playgroundmath.playgroundmath.repository.*
 
@@ -19,7 +20,8 @@ class CourseService(
     private val userRepository: UserRepository,
     private val testRepository: TestRepository,
     private val accountRepository: AccountRepository,
-    private val accountCourseRepository: AccountCourseRepository
+    private val accountCourseRepository: AccountCourseRepository,
+    private val accountTestRepository: AccountTestRepository
 ) {
 
     fun createCourse(courseCreateRequest: CourseCreateRequest): Course {
@@ -95,6 +97,11 @@ class CourseService(
         }
 
         return tmp
+    }
+
+    fun solveTest(solveTestRequest: SolveTestRequest): Any? {
+        //accountTestRepository.save()
+        return null
     }
 
     private fun AccountCourse.toCourseAccountTestsResponse(): CourseAccountTestsResponse =

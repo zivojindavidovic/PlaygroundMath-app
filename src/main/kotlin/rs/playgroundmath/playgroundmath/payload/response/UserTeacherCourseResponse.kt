@@ -1,4 +1,4 @@
-package rs.playgroundmath.playgroundmath.repository
+package rs.playgroundmath.playgroundmath.payload.response
 
 data class UserTeacherCourseResponse(
     val courseId: Long,

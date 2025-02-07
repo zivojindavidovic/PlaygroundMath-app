@@ -5,6 +5,7 @@ import rs.playgroundmath.playgroundmath.model.Course
 import rs.playgroundmath.playgroundmath.payload.request.ApplyForCourseRequest
 import rs.playgroundmath.playgroundmath.payload.request.CourseCreateRequest
 import rs.playgroundmath.playgroundmath.payload.request.ResolveApplicationRequest
+import rs.playgroundmath.playgroundmath.payload.request.SolveTestRequest
 import rs.playgroundmath.playgroundmath.payload.response.*
 import rs.playgroundmath.playgroundmath.service.CourseService
 
@@ -61,6 +62,11 @@ class CourseController(
     @GetMapping("{accountId}/unresolvedTests")
     fun getUnresolvedTests(@PathVariable accountId: Long): List<CourseAccountTestsResponse> =
         courseService.getUnresolvedTests(accountId)
+
+    @PostMapping("/solveTest")
+    fun solveTest(@RequestBody solveTestRequest: SolveTestRequest): Any? {
+        return courseService.solveTest(solveTestRequest)
+    }
 
     private fun Course.toResponse(): CreateCourseResponse {
         return CreateCourseResponse(

@@ -7,7 +7,7 @@ import rs.playgroundmath.playgroundmath.payload.response.DeleteUserResponse
 import rs.playgroundmath.playgroundmath.payload.response.UserAccountsResponse
 import rs.playgroundmath.playgroundmath.payload.response.UserRegisterResponse
 import rs.playgroundmath.playgroundmath.payload.response.UserTeachersResponse
-import rs.playgroundmath.playgroundmath.repository.UserTeacherCourseResponse
+import rs.playgroundmath.playgroundmath.payload.response.UserTeacherCourseResponse
 import rs.playgroundmath.playgroundmath.service.UserService
 
 @RestController
