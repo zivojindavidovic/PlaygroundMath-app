@@ -5,25 +5,21 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import rs.playgroundmath.playgroundmath.exceptions.UserAlreadyExistsException
 import rs.playgroundmath.playgroundmath.exceptions.UserNotFoundException
-import rs.playgroundmath.playgroundmath.model.Role
 import rs.playgroundmath.playgroundmath.enums.RoleType
-import rs.playgroundmath.playgroundmath.model.Account
-import rs.playgroundmath.playgroundmath.model.Course
-import rs.playgroundmath.playgroundmath.model.User
+import rs.playgroundmath.playgroundmath.model.*
 import rs.playgroundmath.playgroundmath.payload.request.UserRegisterRequest
-import rs.playgroundmath.playgroundmath.payload.response.DeleteUserResponse
-import rs.playgroundmath.playgroundmath.payload.response.UserAccountsResponse
-import rs.playgroundmath.playgroundmath.payload.response.UserTeachersResponse
+import rs.playgroundmath.playgroundmath.payload.response.*
 import rs.playgroundmath.playgroundmath.repository.UserRepository
-import rs.playgroundmath.playgroundmath.payload.response.UserTeacherCourseResponse
 
 @Service
 class UserService(
     private val userRepository: UserRepository,
     private val roleService: RoleService,
-    private val courseService: CourseService
+    private val courseService: CourseService,
+    private val communicationService: CommunicationService,
+    private val confirmationTokenService: ConfirmationTokenService
 ) {
-    fun createUser(userRegisterRequest: UserRegisterRequest): User {
+    fun registerUser(userRegisterRequest: UserRegisterRequest): UserRegisterResponse {
         val foundUser = userRepository.findByEmail(userRegisterRequest.email)
 
         if (foundUser != null) {
@@ -36,7 +32,14 @@ class UserService(
            user = user.copy(role = Role(roleId = 3, RoleType.TEACHER))
         }
 
-        return userRepository.save(user)
+        val savedUser = userRepository.save(user)
+
+        val confirmationToken = confirmationTokenService.createConfirmationToken(savedUser)
+        val confirmationLink = "http://0.0.0.0:8080/confirm?token=${confirmationToken.token}"
+
+        communicationService.sendUserRegistrationConfirmationEmail(user.email, confirmationLink)
+
+        return savedUser.toResponse()
     }
 
     fun deleteUser(userId: Long): DeleteUserResponse {
@@ -98,4 +101,11 @@ class UserService(
         )
 
     private fun encoder(): PasswordEncoder = BCryptPasswordEncoder()
+
+    private fun User.toResponse(): UserRegisterResponse {
+        return UserRegisterResponse(
+            id = this.userId,
+            email = this.email
+        )
+    }
 }
