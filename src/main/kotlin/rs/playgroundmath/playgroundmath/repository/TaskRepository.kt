@@ -18,4 +18,7 @@ interface TaskRepository: JpaRepository<Task, Long> {
 //    fun findTop30ByAccountAndStatusOrderByTaskIdDesc(@Param("accountId") accountId: Long, @Param("status") status: TaskStatus): List<Task>
 
     fun findAllByTest(test: Test): List<Task>
+
+    @Query("SELECT SUM(t.points) FROM Task t WHERE t.test.testId = :testId")
+    fun sumPointsByTestId(@Param("testId") testId: Long): Long
 }

@@ -3,10 +3,8 @@ package rs.playgroundmath.playgroundmath.service
 import org.springframework.stereotype.Service
 import rs.playgroundmath.playgroundmath.common.Functions
 import rs.playgroundmath.playgroundmath.enums.AccountCourseStatus
-import rs.playgroundmath.playgroundmath.model.AccountCourse
-import rs.playgroundmath.playgroundmath.model.Course
-import rs.playgroundmath.playgroundmath.model.Task
-import rs.playgroundmath.playgroundmath.model.Test
+import rs.playgroundmath.playgroundmath.enums.YesNo
+import rs.playgroundmath.playgroundmath.model.*
 import rs.playgroundmath.playgroundmath.payload.request.ApplyForCourseRequest
 import rs.playgroundmath.playgroundmath.payload.request.CourseCreateRequest
 import rs.playgroundmath.playgroundmath.payload.request.ResolveApplicationRequest
@@ -21,7 +19,9 @@ class CourseService(
     private val testRepository: TestRepository,
     private val accountRepository: AccountRepository,
     private val accountCourseRepository: AccountCourseRepository,
-    private val accountTestRepository: AccountTestRepository
+    private val accountTestRepository: AccountCourseTestRepository,
+    private val accountCourseTestRepository: AccountCourseTestRepository,
+    private val taskRepository: TaskRepository
 ) {
 
     fun createCourse(courseCreateRequest: CourseCreateRequest): Course {
@@ -69,6 +69,17 @@ class CourseService(
                 status = AccountCourseStatus.ACCEPTED
             )
 
+            val account = accountRepository.findByAccountId(accountId = resolveApplicationRequest.accountId)
+            val tests = testRepository.findAllByCourse_CourseId(courseId = resolveApplicationRequest.courseId)
+
+            tests.forEach { test ->
+                val currentTestId = test.testId
+                val possiblePoints = taskRepository.sumPointsByTestId(currentTestId)
+
+                accountCourseTestRepository.save(AccountCourseTest(account = account, test = test, possiblePoints = possiblePoints.toInt()))
+            }
+
+
             accountCourseRepository.save(updatedAccountCourse)
             ResolveApplicationResponse(message = "Application accepted")
         } else {
@@ -100,17 +111,51 @@ class CourseService(
     }
 
     fun solveTest(solveTestRequest: SolveTestRequest): Any? {
-        //accountTestRepository.save()
-        return null
+        var points = 0
+        val unresolvedTest = testRepository.findByTestId(solveTestRequest.testId)
+        val tasks = taskRepository.findAllByTest(unresolvedTest)
+        tasks.forEach() {
+            val currentTaskId = it.taskId
+            val userAnswer = solveTestRequest.testAnswers.firstNotNullOfOrNull { it[currentTaskId] }
+
+            if (userAnswer!!.toLong() == it.result.toLong()) {
+                points += it.points
+            }
+        }
+
+        val foundAccountCourseTest = accountCourseTestRepository.findByAccount_AccountIdAndTest_TestId(accountId = solveTestRequest.accountId, testId = unresolvedTest.testId)
+
+        val possiblePoints = foundAccountCourseTest.possiblePoints
+        val isPassed = points > (possiblePoints * 70) / 100
+
+        val updatedAccountCourseTest = foundAccountCourseTest.copy(
+            wonPoints = points,
+            passed = if (isPassed) YesNo.YES else YesNo.NO,
+            isCompleted = YesNo.YES
+        )
+
+        accountCourseTestRepository.save(updatedAccountCourseTest)
+
+        return if (isPassed) {
+            SolveCourseTestResponse(message = "You passed test")
+        } else {
+            SolveCourseTestResponse(message = "You failed test")
+        }
     }
 
     private fun AccountCourse.toCourseAccountTestsResponse(): CourseAccountTestsResponse =
         CourseAccountTestsResponse(
             courseId = this.course!!.courseId,
             tests = this.course.tests.map {
-                it.tasks!!.map {
-                    it.toCourseTaskResponse()
-                }
+                it.toCourseTestResponse()
+            }
+        )
+
+    private fun Test.toCourseTestResponse(): CourseTestResponse =
+        CourseTestResponse(
+            testId = this.testId,
+            tasks = this.tasks!!.map {
+                it.toCourseTaskResponse()
             }
         )
 

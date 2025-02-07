@@ -4,10 +4,10 @@ import jakarta.persistence.*
 import rs.playgroundmath.playgroundmath.enums.YesNo
 
 @Entity
-@Table(name = "account_test")
-data class AccountTest(
+@Table(name = "account_course_test")
+data class AccountCourseTest(
     @EmbeddedId
-    val id: AccountTestId = AccountTestId(),
+    val id: AccountCourseTestId = AccountCourseTestId(),
 
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("accountId")

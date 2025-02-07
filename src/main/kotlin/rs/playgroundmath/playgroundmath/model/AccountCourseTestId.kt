@@ -5,7 +5,7 @@ import jakarta.persistence.Embeddable
 import java.io.Serializable
 
 @Embeddable
-data class AccountTestId(
+data class AccountCourseTestId(
     @Column(name = "account_id")
     val accountId: Long = 0,
 
