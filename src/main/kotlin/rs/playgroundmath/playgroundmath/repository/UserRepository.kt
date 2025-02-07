@@ -11,5 +11,5 @@ interface UserRepository: JpaRepository<User, Long> {
 
     fun findAllByRole_RoleId(roleId: Long): List<User>
 
-    fun findByUserId(userId: Long): User
+    fun findByUserId(userId: Long): User?
 }

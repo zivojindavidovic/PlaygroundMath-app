@@ -10,12 +10,12 @@ import rs.playgroundmath.playgroundmath.payload.response.UserAccountsResponse
 import rs.playgroundmath.playgroundmath.payload.response.UserRegisterResponse
 import rs.playgroundmath.playgroundmath.payload.response.UserTeachersResponse
 import rs.playgroundmath.playgroundmath.payload.response.UserTeacherCourseResponse
-import rs.playgroundmath.playgroundmath.service.UserService
+import rs.playgroundmath.playgroundmath.service.UserServiceImpl
 
 @RestController
 @RequestMapping("/api/v1/user")
 class UserController(
-    private val userService: UserService
+    private val userService: UserServiceImpl
 ) {
 
     @PostMapping("/register")

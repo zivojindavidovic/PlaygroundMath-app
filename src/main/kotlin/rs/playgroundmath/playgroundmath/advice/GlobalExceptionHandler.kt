@@ -6,6 +6,7 @@ import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
+import rs.playgroundmath.playgroundmath.exceptions.AccountMaximumPerUserException
 import rs.playgroundmath.playgroundmath.exceptions.UserAlreadyExistsException
 import rs.playgroundmath.playgroundmath.exceptions.UserStatusNotActiveException
 import rs.playgroundmath.playgroundmath.payload.request.working.ApiResponse
@@ -25,16 +26,16 @@ class GlobalExceptionHandler {
 
         return ResponseEntity(response, HttpStatus.BAD_REQUEST)
     }
-//
-//    @ExceptionHandler(AccountMaximumPerUserException::class)
-//    fun handleAccountMaximumPerUserException(ex: AccountMaximumPerUserException): ResponseEntity<Map<String, String>> {
-//        val response: Map<String, String> = mapOf(
-//            "error" to "Account Maximum Per User",
-//            "message" to (ex.message ?: "Account maximum per user reached")
-//        )
-//
-//        return ResponseEntity(response, HttpStatus.CONFLICT)
-//    }
+
+    @ExceptionHandler(AccountMaximumPerUserException::class)
+    fun handleAccountMaximumPerUserException(ex: AccountMaximumPerUserException): ResponseEntity<Map<String, String>> {
+        val response: Map<String, String> = mapOf(
+            "error" to "Account Maximum Per User",
+            "message" to (ex.message ?: "Account maximum per user reached")
+        )
+
+        return ResponseEntity(response, HttpStatus.CONFLICT)
+    }
 
     @ExceptionHandler(UserStatusNotActiveException::class)
     fun handleUserPendingException(ex: UserStatusNotActiveException): ResponseEntity<ApiResponse<Any>> {

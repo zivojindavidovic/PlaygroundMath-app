@@ -17,7 +17,7 @@ class AuthenticationServiceImpl(
     private val userDetailsService: CustomUserDetailsService,
     private val tokenService: TokenService,
     private val jwtProperties: JwtProperties,
-    private val userService: UserService
+    private val userService: UserServiceImpl
 ): AuthenticationService {
 
     override fun authenticate(authRequest: AuthenticationRequest): AuthenticationResponse {

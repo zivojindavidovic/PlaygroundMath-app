@@ -1,5 +1,7 @@
 package rs.playgroundmath.playgroundmath.controller
 
+import jakarta.validation.Valid
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -11,20 +13,27 @@ import org.springframework.web.bind.annotation.RestController
 import rs.playgroundmath.playgroundmath.model.Account
 import rs.playgroundmath.playgroundmath.payload.request.AccountCreateRequest
 import rs.playgroundmath.playgroundmath.payload.request.UpdateAccountRequest
+import rs.playgroundmath.playgroundmath.payload.request.working.ApiResponse
 import rs.playgroundmath.playgroundmath.payload.response.*
-import rs.playgroundmath.playgroundmath.service.AccountService
+import rs.playgroundmath.playgroundmath.service.AccountServiceImpl
 
 @RestController
 @RequestMapping("/api/v1/account")
 class AccountController(
-    private val accountService: AccountService,
+    private val accountService: AccountServiceImpl,
 ) {
 
     @PostMapping("/create")
-    fun create(@RequestBody accountCreateRequest: AccountCreateRequest): AccountCreateResponse {
-        val createdAccount = accountService.createAccount(accountCreateRequest)
+    fun createAccount(@Valid @RequestBody accountCreateRequest: AccountCreateRequest): ResponseEntity<ApiResponse<AccountCreateResponse>> {
+        val result = accountService.createAccount(accountCreateRequest)
 
-        return createdAccount.toResponse()
+        return ResponseEntity.ok(
+            ApiResponse(
+                success = true,
+                errors = emptyList(),
+                results = listOf(result)
+            )
+        )
     }
 
     @DeleteMapping("/delete/{accountId}")
@@ -52,14 +61,6 @@ class AccountController(
                     points = account.points
                 )
             }
-        )
-
-
-    private fun Account.toResponse(): AccountCreateResponse =
-        AccountCreateResponse(
-            id = this.accountId,
-            username = this.username,
-            userId = this.user!!.userId
         )
 }
 
