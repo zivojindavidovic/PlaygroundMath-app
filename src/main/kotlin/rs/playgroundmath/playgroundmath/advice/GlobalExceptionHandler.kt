@@ -2,19 +2,18 @@ package rs.playgroundmath.playgroundmath.advice
 
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
-import org.springframework.web.bind.annotation.RestControllerAdvice
-import rs.playgroundmath.playgroundmath.exceptions.AccountMaximumPerUserException
-import rs.playgroundmath.playgroundmath.exceptions.UserAlreadyExistsException
+import rs.playgroundmath.playgroundmath.exceptions.UserStatusNotActiveException
 import rs.playgroundmath.playgroundmath.payload.request.working.ApiResponse
 
 //@RestControllerAdvice
 @ControllerAdvice
 class GlobalExceptionHandler {
 
-//    @ExceptionHandler(UserAlreadyExistsException::class)
+    //    @ExceptionHandler(UserAlreadyExistsException::class)
 //    fun handleUserAlreadyExistsException(ex: UserAlreadyExistsException): ResponseEntity<Map<String, String>> {
 //        val response: Map<String, String> = mapOf(
 //            "error" to "User Already Exists",
@@ -33,6 +32,19 @@ class GlobalExceptionHandler {
 //
 //        return ResponseEntity(response, HttpStatus.CONFLICT)
 //    }
+
+    @ExceptionHandler(UserStatusNotActiveException::class)
+    fun handleUserPendingException(ex: UserStatusNotActiveException): ResponseEntity<ApiResponse<Any>> {
+        val errors = listOf(mapOf("account" to (ex.message ?: "Nalog nije potvrđen")))
+        val response = ApiResponse<Any>(
+            success = false,
+            errors = errors,
+            results = emptyList()
+        )
+
+        return ResponseEntity(response, HttpStatus.UNAUTHORIZED)
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException::class)
     fun handleValidationExceptions(ex: MethodArgumentNotValidException): ResponseEntity<ApiResponse<Any>> {
         val errors = ex.bindingResult.fieldErrors.map { fieldError ->
@@ -46,5 +58,16 @@ class GlobalExceptionHandler {
         )
 
         return ResponseEntity(response, HttpStatus.BAD_REQUEST)
+    }
+
+    @ExceptionHandler(BadCredentialsException::class)
+    fun handleBadCredentialsException(ex: BadCredentialsException): ResponseEntity<ApiResponse<Any>> {
+        val errors = listOf(mapOf("credentials" to "Uneo si pogrešne kredencijale"))
+        val response = ApiResponse<Any>(
+            success = false,
+            errors = errors,
+            results = emptyList()
+        )
+        return ResponseEntity(response, HttpStatus.UNAUTHORIZED)
     }
 }
