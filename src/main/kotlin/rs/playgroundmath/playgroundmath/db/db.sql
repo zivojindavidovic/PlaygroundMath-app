@@ -57,3 +57,15 @@ CREATE TABLE `task` (
                         `test_id` BIGINT NOT NULL,
                         FOREIGN KEY (`test_id`) REFERENCES `test`(`test_id`) ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+CREATE TABLE `account_course_test` (
+                                       `account_id` BIGINT NOT NULL,
+                                       `test_id` BIGINT NOT NULL,
+                                       `possible_points` INT NOT NULL,
+                                       `won_points` INT DEFAULT NULL,
+                                       `passed` ENUM('YES', 'NO') NOT NULL DEFAULT 'NO',
+                                       `is_completed` ENUM('YES', 'NO') NOT NULL DEFAULT 'NO',
+                                       PRIMARY KEY (`account_id`, `test_id`),
+                                       FOREIGN KEY (`account_id`) REFERENCES `account`(`account_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+                                       FOREIGN KEY (`test_id`) REFERENCES `test`(`test_id`) ON DELETE CASCADE ON UPDATE CASCADE
+);

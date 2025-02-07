@@ -19,6 +19,12 @@ data class AccountTest(
     @JoinColumn(name = "test_id", nullable = false)
     val test: Test? = null,
 
+    @Column(name = "possible_points", nullable = false)
+    val possiblePoints: Int = 0,
+
+    @Column(name = "won_points", nullable = true)
+    val wonPoints: Int? = null,
+
     @Column(name = "passed", nullable = false, columnDefinition = "ENUM('YES','NO')")
     @Enumerated(EnumType.STRING)
     val passed: YesNo = YesNo.NO,
