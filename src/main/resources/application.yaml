@@ -8,6 +8,14 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     database-platform: org.hibernate.dialect.MySQL8Dialect
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: "zivojin.2001davidovic@gmail.com"
+    password: "mcqr qvph saks dbuc"
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
 
 jwt:
   key: ljkasdafjklhadlsjfhasdkjhfekjhljkasdafjklhadlsjfhasdkjhfekjh
