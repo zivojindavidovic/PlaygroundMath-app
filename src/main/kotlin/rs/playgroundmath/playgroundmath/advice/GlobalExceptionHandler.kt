@@ -14,15 +14,18 @@ import rs.playgroundmath.playgroundmath.payload.request.working.ApiResponse
 @ControllerAdvice
 class GlobalExceptionHandler {
 
-//    @ExceptionHandler(UserAlreadyExistsException::class)
-//    fun handleUserAlreadyExistsException(ex: UserAlreadyExistsException): ResponseEntity<Map<String, String>> {
-//        val response: Map<String, String> = mapOf(
-//            "error" to "User Already Exists",
-//            "message" to (ex.message ?: "User with this email already exists")
-//        )
-//
-//        return ResponseEntity(response, HttpStatus.CONFLICT)
-//    }
+    @ExceptionHandler(UserAlreadyExistsException::class)
+    fun handleUserAlreadyExistsException(ex: UserAlreadyExistsException): ResponseEntity<ApiResponse<Any>> {
+        val errors = listOf(mapOf("email" to (ex.message ?: "Invalid value")))
+
+        val response = ApiResponse<Any>(
+            success = false,
+            errors = errors,
+            results = emptyList()
+        )
+
+        return ResponseEntity(response, HttpStatus.BAD_REQUEST)
+    }
 //
 //    @ExceptionHandler(AccountMaximumPerUserException::class)
 //    fun handleAccountMaximumPerUserException(ex: AccountMaximumPerUserException): ResponseEntity<Map<String, String>> {
