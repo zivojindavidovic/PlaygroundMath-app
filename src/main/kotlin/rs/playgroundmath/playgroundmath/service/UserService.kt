@@ -23,7 +23,7 @@ class UserService(
         val foundUser = userRepository.findByEmail(userRegisterRequest.email)
 
         if (foundUser != null) {
-            throw UserAlreadyExistsException("User with email ${userRegisterRequest.email} already exists")
+            throw UserAlreadyExistsException("Korisnik sa e-adresom je već registrovan")
         }
 
         var user = User(email = userRegisterRequest.email, password = encoder().encode(userRegisterRequest.password))
