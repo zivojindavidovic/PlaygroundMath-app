@@ -29,6 +29,7 @@ class TaskService(
 
         if (accountId != null && courseId == null) {
             val allowedOperationsConfig = mapOf(
+                "+" to 0,
                 "-" to 70,
                 "*" to 200,
                 "/" to 500
