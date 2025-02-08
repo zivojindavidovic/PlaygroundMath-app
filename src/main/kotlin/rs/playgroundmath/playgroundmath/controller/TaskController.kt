@@ -1,5 +1,6 @@
 package rs.playgroundmath.playgroundmath.controller
 
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -7,7 +8,9 @@ import org.springframework.web.bind.annotation.RestController
 import rs.playgroundmath.playgroundmath.payload.request.GenerateTasksRequest
 import rs.playgroundmath.playgroundmath.payload.request.SolveTestRequest
 import rs.playgroundmath.playgroundmath.payload.request.TaskGetUnresolvedRequest
+import rs.playgroundmath.playgroundmath.payload.request.working.ApiResponse
 import rs.playgroundmath.playgroundmath.payload.response.SolveTestResponse
+import rs.playgroundmath.playgroundmath.payload.response.TaskGenerateResponse
 import rs.playgroundmath.playgroundmath.service.TaskService
 
 @RestController
@@ -17,8 +20,16 @@ class TaskController(
 ) {
 
     @PostMapping
-    fun generateTasks(@RequestBody generateTasksRequest: GenerateTasksRequest): Any? {
-        return taskService.generateTasks(generateTasksRequest)
+    fun generateTasks(@RequestBody generateTasksRequest: GenerateTasksRequest): ResponseEntity<ApiResponse<TaskGenerateResponse>> {
+        val results = taskService.generateTasks(generateTasksRequest)
+
+        return ResponseEntity.ok(
+            ApiResponse(
+                success = true,
+                errors = emptyList(),
+                results = listOf(results)
+            )
+        )
     }
 
     @PostMapping("/get")

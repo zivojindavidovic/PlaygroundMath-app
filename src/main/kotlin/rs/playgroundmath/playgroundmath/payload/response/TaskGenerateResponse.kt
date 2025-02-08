@@ -1,6 +1,6 @@
 package rs.playgroundmath.playgroundmath.payload.response
 
-data class PdfTaskResponse(
+data class TaskGenerateResponse(
     val type: String = "pdf",
-    val tasks: List<String>
+    val tasks: List<String>? = null
 )

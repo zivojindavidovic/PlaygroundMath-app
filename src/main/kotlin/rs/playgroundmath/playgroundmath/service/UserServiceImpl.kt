@@ -15,7 +15,7 @@ import rs.playgroundmath.playgroundmath.repository.UserRepository
 class UserServiceImpl(
     private val userRepository: UserRepository,
     private val roleService: RoleService,
-    private val courseService: CourseService,
+    private val courseService: CourseServiceImpl,
     private val communicationService: CommunicationService,
     private val confirmationTokenService: ConfirmationTokenService
 ): UserService {

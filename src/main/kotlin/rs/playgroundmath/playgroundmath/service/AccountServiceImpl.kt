@@ -92,4 +92,14 @@ class AccountServiceImpl(
 
         return accountRepository.countByUser(currentUser!!)
     }
+
+    override fun findByAccountId(accountId: Long): Account =
+        accountRepository.findByAccountId(accountId)
+
+    override fun getAccountPoints(accountId: Long): Long {
+        return findByAccountId(accountId).points
+    }
+
+    override fun saveAccount(account: Account): Account =
+        accountRepository.save(account)
 }

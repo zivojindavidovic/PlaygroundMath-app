@@ -7,12 +7,12 @@ import rs.playgroundmath.playgroundmath.payload.request.CourseCreateRequest
 import rs.playgroundmath.playgroundmath.payload.request.ResolveApplicationRequest
 import rs.playgroundmath.playgroundmath.payload.request.SolveTestRequest
 import rs.playgroundmath.playgroundmath.payload.response.*
-import rs.playgroundmath.playgroundmath.service.CourseService
+import rs.playgroundmath.playgroundmath.service.CourseServiceImpl
 
 @RestController
 @RequestMapping("/api/v1/course")
 class CourseController(
-    private val courseService: CourseService
+    private val courseService: CourseServiceImpl
 ) {
 
     @PostMapping("/create")

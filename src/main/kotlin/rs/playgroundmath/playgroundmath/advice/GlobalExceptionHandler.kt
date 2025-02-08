@@ -7,6 +7,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import rs.playgroundmath.playgroundmath.exceptions.AccountMaximumPerUserException
+import rs.playgroundmath.playgroundmath.exceptions.TaskUserHasUnresolvedException
 import rs.playgroundmath.playgroundmath.exceptions.UserAlreadyExistsException
 import rs.playgroundmath.playgroundmath.exceptions.UserStatusNotActiveException
 import rs.playgroundmath.playgroundmath.payload.request.working.ApiResponse
@@ -25,6 +26,19 @@ class GlobalExceptionHandler {
         )
 
         return ResponseEntity(response, HttpStatus.BAD_REQUEST)
+    }
+
+    @ExceptionHandler(TaskUserHasUnresolvedException::class)
+    fun handleTaskUserHasUnresolvedException(ex: TaskUserHasUnresolvedException): ResponseEntity<ApiResponse<Any>> {
+        val errors = listOf(mapOf("task" to (ex.message ?: "Invalid value")))
+
+        val response = ApiResponse<Any>(
+            success = false,
+            errors = errors,
+            results = emptyList()
+        )
+
+        return ResponseEntity(response, HttpStatus.CONFLICT)
     }
 
     @ExceptionHandler(AccountMaximumPerUserException::class)

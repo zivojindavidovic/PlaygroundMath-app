@@ -2,15 +2,14 @@ package rs.playgroundmath.playgroundmath.service
 
 import org.springframework.stereotype.Service
 import rs.playgroundmath.playgroundmath.enums.YesNo
+import rs.playgroundmath.playgroundmath.exceptions.TaskUserHasUnresolvedException
 import rs.playgroundmath.playgroundmath.model.Task
 import rs.playgroundmath.playgroundmath.model.Test
 import rs.playgroundmath.playgroundmath.payload.request.GenerateTasksRequest
 import rs.playgroundmath.playgroundmath.payload.request.SolveTestRequest
 import rs.playgroundmath.playgroundmath.payload.response.*
-import rs.playgroundmath.playgroundmath.repository.AccountRepository
-import rs.playgroundmath.playgroundmath.repository.CourseRepository
 import rs.playgroundmath.playgroundmath.repository.TaskRepository
-import rs.playgroundmath.playgroundmath.repository.TestRepository
+import kotlin.math.floor
 import kotlin.random.Random
 
 typealias ApplicationTask = rs.playgroundmath.playgroundmath.model.Task
@@ -18,62 +17,76 @@ typealias ApplicationTask = rs.playgroundmath.playgroundmath.model.Task
 @Service
 class TaskService(
     private val taskRepository: TaskRepository,
-    private val accountRepository: AccountRepository,
-    private val testRepository: TestRepository,
-    private val courseRepository: CourseRepository
+    private val accountService: AccountService,
+    private val courseService: CourseService,
+    private val testService: TestService
 ) {
 
-    fun generateTasks(generateTasksRequest: GenerateTasksRequest): Any? {
-        return if (generateTasksRequest.testType == "pdf") {
-            generatePdfTasks(generateTasksRequest)
-        } else if (generateTasksRequest.testType == "online") {
-            generateOnlineTasks(generateTasksRequest)
-        } else if (generateTasksRequest.testType == "coursePdf") {
-            generateCoursePdfTestTasks(generateTasksRequest)
+    fun generateTasks(generateTasksRequest: GenerateTasksRequest): TaskGenerateResponse {
+        val operations = generateTasksRequest.operations
+        val accountId: Long? = generateTasksRequest.accountId
+        val courseId: Long? = generateTasksRequest.courseId
+
+        if (accountId != null && courseId == null) {
+            val allowedOperationsConfig = mapOf(
+                "-" to 70,
+                "*" to 200,
+                "/" to 500
+            )
+
+            val userPoints = accountService.getAccountPoints(accountId)
+
+            allowedOperationsConfig.forEach{
+                if (operations.contains(it.key) && userPoints < it.value) {
+                    operations.remove(it.key)
+                }
+            }
+        }
+
+        return if (generateTasksRequest.testType == "pdf" || generateTasksRequest.testType == "coursePdf") {
+            generatePdfTasks(generateTasksRequest.numberOneFrom, generateTasksRequest.numberOneTo, generateTasksRequest.numberTwoFrom, generateTasksRequest.numberTwoTo, operations)
         } else {
-            generateCourseOnlineTestTasks(generateTasksRequest)
+            generateOnlineTasks(generateTasksRequest.numberOneFrom, generateTasksRequest.numberOneTo, generateTasksRequest.numberTwoFrom, generateTasksRequest.numberTwoTo, operations, accountId, courseId)
         }
     }
 
-    private fun generatePdfTasks(generateTasksRequest: GenerateTasksRequest): PdfTaskResponse {
+    private fun generatePdfTasks(numberOneFrom: Long, numberOneTo: Long, numberTwoFrom: Long, numberTwoTo: Long, operations: MutableList<String>): TaskGenerateResponse {
         val tasks = mutableListOf<String>()
+
         for (i in 1..20) {
-            val firstNumber = Random.nextLong(generateTasksRequest.numberOneFrom, generateTasksRequest.numberOneTo)
-            val secondNumber = Random.nextLong(generateTasksRequest.numberTwoFrom, generateTasksRequest.numberTwoTo)
-
-            val randomOperation = generateTasksRequest.operations.random()
-
-            val task = "$firstNumber $randomOperation $secondNumber = "
+            val taskInformation = generateRuleBasedTasks(numberOneFrom, numberOneTo, numberTwoFrom, numberTwoTo, operations)
+            val task = "${taskInformation["firstNumber"]} ${taskInformation["operation"]} ${taskInformation["secondNumber"]} = "
 
             tasks.add(task)
         }
 
-        return PdfTaskResponse(tasks = tasks)
+        return TaskGenerateResponse(
+            tasks = tasks
+        )
     }
 
-    private fun generateOnlineTasks(generateTasksRequest: GenerateTasksRequest): Any? {
-        if (countUnresolvedTestsByAccountId(generateTasksRequest.accountId!!) > 0) {
-            return OnlineTaskResponse("Account already has unresolved test")
-        }
+    private fun generateOnlineTasks(numberOneFrom: Long, numberOneTo: Long, numberTwoFrom: Long, numberTwoTo: Long, operations: MutableList<String>, accountId: Long?, courseId: Long?): TaskGenerateResponse {
+        var test: Test? = null
 
-        val account = accountRepository.findById(generateTasksRequest.accountId)
-        val test = testRepository.save(Test(account = account.get(), isCompleted = YesNo.NO))
-
-        for(i in 1..20) {
-            val firstNumber = Random.nextLong(generateTasksRequest.numberOneFrom, generateTasksRequest.numberOneTo)
-            val secondNumber = Random.nextLong(generateTasksRequest.numberTwoFrom, generateTasksRequest.numberTwoTo)
-
-            val randomOperation = generateTasksRequest.operations.random()
-
-            val result = when (randomOperation) {
-                "+" -> firstNumber + secondNumber
-                "-" -> firstNumber - secondNumber
-                "*" -> firstNumber * secondNumber
-                "/" -> firstNumber / secondNumber
-                else -> 0.0
+        if (accountId != null) {
+            val unresolvedTasks = testService.countUnresolvedTestsByAccountId(accountId)
+            if (unresolvedTasks > 0) {
+                throw TaskUserHasUnresolvedException("Već imaš generisane zadatke koje nisi rešio")
             }
 
-            val points = when (randomOperation) {
+            val account = accountService.findByAccountId(accountId)
+            test = testService.saveTest(Test(account = account, isCompleted = YesNo.NO))
+        }
+
+        if (courseId != null) {
+            val course = courseService.findByCourseId(courseId)
+            test = testService.saveTest(Test(course = course))
+        }
+
+        for(i in 1..20) {
+            val taskInformation = generateRuleBasedTasks(numberOneFrom, numberOneTo, numberTwoFrom, numberTwoTo, operations)
+
+            val points = when (taskInformation["operation"]) {
                 "+" -> 1
                 "-" -> 2
                 "*" -> 3
@@ -81,68 +94,148 @@ class TaskService(
                 else -> 1
             }
 
-            taskRepository.save(Task(firstNumber = firstNumber.toString(), secondNumber = secondNumber.toString(), operation = randomOperation, result = result.toString(), points = points, test = test))
+            taskRepository.save(Task(firstNumber = taskInformation["firstNumber"].toString(), secondNumber = taskInformation["secondNumber"].toString(), operation = taskInformation["operation"].toString(), result = taskInformation["result"].toString(), points = points, test = test))
         }
 
-        return OnlineTaskResponse("Test created")
+        return TaskGenerateResponse(type = "online")
     }
 
-    private fun generateCoursePdfTestTasks(generateTasksRequest: GenerateTasksRequest): PdfTaskResponse {
-        val tasks = mutableListOf<String>()
-        for (i in 1..20) {
-            val firstNumber = Random.nextLong(generateTasksRequest.numberOneFrom, generateTasksRequest.numberOneTo)
-            val secondNumber = Random.nextLong(generateTasksRequest.numberTwoFrom, generateTasksRequest.numberTwoTo)
+    private fun generateRuleBasedTasks(
+        numberOneFrom: Long,
+        numberOneTo: Long,
+        numberTwoFrom: Long,
+        numberTwoTo: Long,
+        operations: MutableList<String>
+    ): Map<String, Any> {
+        val operation = operations.random()
 
-            val randomOperation = generateTasksRequest.operations.random()
+        val firstNumber = Random.nextLong(numberOneFrom, numberOneTo)
+        val secondNumber = generateSecondNumberBasedOnFirstNumber(firstNumber, numberTwoFrom, numberTwoTo, operation)
 
-            val task = "$firstNumber $randomOperation $secondNumber = "
-
-            tasks.add(task)
+        val result = when (operation) {
+            "+" -> firstNumber + secondNumber
+            "-" -> firstNumber - secondNumber
+            "*" -> firstNumber * secondNumber
+            "/" -> firstNumber / secondNumber
+            else -> 0.0
         }
 
-        return PdfTaskResponse(tasks = tasks)
+        return mapOf(
+            "firstNumber" to firstNumber,
+            "secondNumber" to secondNumber,
+            "operation" to operation,
+            "result" to result
+        )
     }
 
-    private fun generateCourseOnlineTestTasks(generateTasksRequest: GenerateTasksRequest): OnlineTaskResponse {
-        val course = courseRepository.findByCourseId(generateTasksRequest.courseId!!)
-        val test = testRepository.save(Test(course = course))
+    private fun generateSecondNumberBasedOnFirstNumber(firstNumber: Long, numberTwoFrom: Long, numberTwoTo: Long, operations: String): Long {
+        return when (operations) {
+            "+" -> generateSecondNumberForSum(firstNumber, numberTwoFrom, numberTwoTo)
+            "-" -> generateSecondNumberForSub(firstNumber, numberTwoFrom, numberTwoTo)
+            "*" -> generateSecondNumberForMul(firstNumber, numberTwoFrom, numberTwoTo)
+            "/" -> generateSecondNumberForDiv(firstNumber, numberTwoFrom, numberTwoTo)
+            else -> {1}
+        }
+    }
 
-        for(i in 1..20) {
-            val firstNumber = Random.nextLong(generateTasksRequest.numberOneFrom, generateTasksRequest.numberOneTo)
-            val secondNumber = Random.nextLong(generateTasksRequest.numberTwoFrom, generateTasksRequest.numberTwoTo)
+    private fun generateSecondNumberForSum(firstNumber: Long, numberTwoFrom: Long, numberTwoTo: Long,): Long {
+        val sumUnitsKeepCurrentTen = true
+        val sumExceedTwoDigits = false
 
-            val randomOperation = generateTasksRequest.operations.random()
+        val candidatesNoUnitsCarry = if (sumUnitsKeepCurrentTen) {
+            (numberTwoFrom..numberTwoTo).filter { second ->
+                ((firstNumber % 10) + (second % 10)) < 10
+            }
+        } else {
+            (numberTwoFrom..numberTwoTo).toList()
+        }
 
-            val result = when (randomOperation) {
-                "+" -> firstNumber + secondNumber
-                "-" -> firstNumber - secondNumber
-                "*" -> firstNumber * secondNumber
-                "/" -> firstNumber / secondNumber
-                else -> 0.0
+        val candidatesNoThreeDigits = if (!sumExceedTwoDigits) {
+            candidatesNoUnitsCarry.filter { second ->
+                (firstNumber + second) < 100
+            }
+        } else {
+            candidatesNoUnitsCarry
+        }
+
+        if (candidatesNoThreeDigits.isEmpty()) {
+            return 0
+        }
+
+        return candidatesNoThreeDigits.random()
+    }
+
+    private fun generateSecondNumberForSub(firstNumber: Long, numberTwoFrom: Long, numberTwoTo: Long,): Long {
+        val allowedNegativeResults = true
+        val allowedBiggerUnitsInSecondNumber = true
+
+        val range = numberTwoFrom..numberTwoTo
+
+        val validCandidates = range.filter { second ->
+            val noNegativeCondition = if (!allowedNegativeResults) {
+                second <= firstNumber
+            } else {
+                true
             }
 
-            val points = when (randomOperation) {
-                "+" -> 1
-                "-" -> 2
-                "*" -> 3
-                "/" -> 4
-                else -> 1
+            val noBiggerUnitsCondition = if (!allowedBiggerUnitsInSecondNumber) {
+                (second % 10) <= (firstNumber % 10)
+            } else {
+                true
             }
 
-            taskRepository.save(Task(firstNumber = firstNumber.toString(), secondNumber = secondNumber.toString(), operation = randomOperation, result = result.toString(), points = points, test = test))
+            noNegativeCondition && noBiggerUnitsCondition
         }
 
-        return OnlineTaskResponse("Test created")
+        if (validCandidates.isEmpty()) {
+            return 0
+        }
+
+        return validCandidates.random()
     }
 
-    private fun countUnresolvedTestsByAccountId(accountId: Long): Long =
-        testRepository.countByAccount_AccountIdAndIsCompleted(accountId, YesNo.NO)
+    private fun generateSecondNumberForMul(firstNumber: Long, numberTwoFrom: Long, numberTwoTo: Long,): Long {
+        val allowedThreeDigitsResult = true
+
+        val range = numberTwoFrom..numberTwoTo
+
+        return if (allowedThreeDigitsResult) {
+            range.random()
+        } else {
+            val maxPossibleResult = 99.0
+
+            val div = maxPossibleResult / firstNumber
+            val maxPossibleSecondNumber = floor(div).toInt()
+
+            if (maxPossibleSecondNumber > numberTwoFrom) {
+                return 0
+            }
+
+            val newRange = numberTwoFrom..maxPossibleSecondNumber
+            newRange.random()
+        }
+    }
+
+    private fun generateSecondNumberForDiv(firstNumber: Long, numberTwoFrom: Long, numberTwoTo: Long,): Long {
+        val range = numberTwoFrom..numberTwoTo
+
+        val candidatesForDivision = range.filter { second ->
+            val result = firstNumber.toDouble() / second.toDouble()
+            (result % 1) == 0.0
+        }
+
+        if (candidatesForDivision.isEmpty()) {
+            return firstNumber
+        }
+
+        return candidatesForDivision.random()
+    }
 
     fun getUnresolvedTestByAccountId(accountId: Long): Any? {
-        val hasUnresolvedTest = countUnresolvedTestsByAccountId(accountId) > 0
+        val hasUnresolvedTest = testService.countUnresolvedTestsByAccountId(accountId) > 0
 
         if (hasUnresolvedTest) {
-            val unresolvedTest = testRepository.findByAccount_AccountIdAndIsCompleted(accountId, YesNo.NO)
+            val unresolvedTest = testService.findUnresolvedTestsByAccountId(accountId)
 
             val tasks = taskRepository.findAllByTest(unresolvedTest)
 
@@ -162,7 +255,7 @@ class TaskService(
 
     fun solveTest(solveTestRequest: SolveTestRequest): SolveTestResponse {
         var points = 0
-        val unresolvedTest = testRepository.findByAccount_AccountIdAndIsCompleted(solveTestRequest.accountId, YesNo.NO)
+        val unresolvedTest = testService.findUnresolvedTestsByAccountId(solveTestRequest.accountId)
         val tasks = taskRepository.findAllByTest(unresolvedTest)
         tasks.forEach() {
             val currentTaskId = it.taskId
@@ -172,13 +265,14 @@ class TaskService(
                 points += it.points
             }
         }
-        val account = accountRepository.findById(solveTestRequest.accountId).get()
+
+        val account = accountService.findByAccountId(solveTestRequest.accountId)
         val updatedAccount = account.copy(points = account.points + points)
 
-        accountRepository.save(updatedAccount)
+        accountService.saveAccount(updatedAccount)
 
         val updatedTest = unresolvedTest.copy(isCompleted = YesNo.YES)
-        testRepository.save(updatedTest)
+        testService.saveTest(updatedTest)
 
         return SolveTestResponse(pointsFromTest = points.toLong())
     }
