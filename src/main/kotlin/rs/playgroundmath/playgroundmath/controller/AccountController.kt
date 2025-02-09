@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import rs.playgroundmath.playgroundmath.payload.request.AccountCreateRequest
 import rs.playgroundmath.playgroundmath.payload.request.AccountDeleteRequest
-import rs.playgroundmath.playgroundmath.payload.request.working.ApiResponse
+import rs.playgroundmath.playgroundmath.payload.request.ApiResponse
 import rs.playgroundmath.playgroundmath.payload.response.*
 import rs.playgroundmath.playgroundmath.service.AccountService
 

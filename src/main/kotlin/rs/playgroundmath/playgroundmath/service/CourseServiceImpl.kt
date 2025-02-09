@@ -1,74 +1,76 @@
 package rs.playgroundmath.playgroundmath.service
 
+import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Service
 import rs.playgroundmath.playgroundmath.common.Functions
 import rs.playgroundmath.playgroundmath.enums.AccountCourseStatus
-import rs.playgroundmath.playgroundmath.enums.YesNo
 import rs.playgroundmath.playgroundmath.model.*
 import rs.playgroundmath.playgroundmath.payload.request.ApplyForCourseRequest
 import rs.playgroundmath.playgroundmath.payload.request.CourseCreateRequest
 import rs.playgroundmath.playgroundmath.payload.request.ResolveApplicationRequest
-import rs.playgroundmath.playgroundmath.payload.request.SolveTestRequest
 import rs.playgroundmath.playgroundmath.payload.response.*
 import rs.playgroundmath.playgroundmath.repository.*
 
 @Service
 class CourseServiceImpl(
     private val courseRepository: CourseRepository,
-    private val userRepository: UserRepository,
     private val testRepository: TestRepository,
-    private val accountRepository: AccountRepository,
     private val accountCourseRepository: AccountCourseRepository,
     private val accountCourseTestRepository: AccountCourseTestRepository,
     private val taskRepository: TaskRepository,
+    @Lazy private val userService: UserService,
+    @Lazy private val accountService: AccountService
 ): CourseService {
 
-    fun createCourse(courseCreateRequest: CourseCreateRequest): Course {
-        val foundUser = userRepository.findById(courseCreateRequest.userId)
-        return courseRepository.save(Course(dueDate = courseCreateRequest.dueDate, age = courseCreateRequest.age, user = foundUser.get()))
+    override fun createCourse(courseCreateRequest: CourseCreateRequest): CourseResponse {
+        val user = userService.findByUserId(courseCreateRequest.userId)
+
+        return courseRepository.save(
+            Course(
+                dueDate = courseCreateRequest.dueDate,
+                age = courseCreateRequest.age,
+                user = user
+            )
+        ).toResponse()
     }
 
-    fun getMyCourses(): List<Course> =
-        courseRepository.findAllByUser_UserId(Functions.getCurrentLoggedInUserId()!!)
+    override fun getMyCourses(): List<CourseResponse> =
+        courseRepository.findAllByUser_UserId(Functions.getCurrentLoggedInUserId()!!).map {
+            it.toResponse()
+        }
 
-    fun findAllByUserId(userId: Long): List<Course> =
-        courseRepository.findAllByUser_UserId(userId)
+    override fun getCourseById(courseId: Long): CourseResponse =
+        courseRepository.findById(courseId).get().toResponse()
 
-    fun getCourse(courseId: Long): Course =
-        courseRepository.findById(courseId).get()
-
-    fun getCourseTests(courseId: Long): List<CourseTestsResponse> {
-        return testRepository.findAllByCourse_CourseId(courseId).map {
-            it.toCourseTestsResponse()
+    override fun findCoursesRelatedToUserId(userId: Long): List<CourseResponse> {
+        return courseRepository.findAllByUser_UserId(userId).map {
+            it.toResponse()
         }
     }
 
-    fun applyForCourse(applyForCourseRequest: ApplyForCourseRequest): ApplicationForCourseResponse {
-        val foundCourse = courseRepository.findByCourseId(applyForCourseRequest.courseId)
-        val foundAccount = accountRepository.findByAccountId(applyForCourseRequest.accountId)
+    override fun applyForCourse(applyForCourseRequest: ApplyForCourseRequest) {
+        val course = courseRepository.findByCourseId(applyForCourseRequest.courseId)
+        val account = accountService.findByAccountId(applyForCourseRequest.accountId)
 
-        accountCourseRepository.save(AccountCourse(account = foundAccount, course = foundCourse, status = AccountCourseStatus.PENDING))
-
-        return ApplicationForCourseResponse(message = "Application sent successfully")
+        accountCourseRepository.save(AccountCourse(account = account, course = course, status = AccountCourseStatus.PENDING))
     }
 
-    fun getCoursesApplications(userId: Long): List<CourseApplicationResponse> {
-        val foundApplications = accountCourseRepository.findAllByCourse_User_UserIdAndStatus(userId, AccountCourseStatus.PENDING)
+    override fun getCoursesApplications(userId: Long): List<CourseApplicationResponse> {
+        val applications = accountCourseRepository.findAllByCourse_User_UserIdAndStatus(userId, AccountCourseStatus.PENDING)
 
-        return foundApplications.map {
+        return applications.map {
             it.toCourseApplicationResponse()
         }
     }
 
-    fun resolveApplication(resolveApplicationRequest: ResolveApplicationRequest): ResolveApplicationResponse {
+    override fun resolveApplication(resolveApplicationRequest: ResolveApplicationRequest) {
         val foundAccountCourse = accountCourseRepository.findByCourse_CourseIdAndAccount_AccountId(resolveApplicationRequest.courseId, resolveApplicationRequest.accountId)
-
-        return if (resolveApplicationRequest.decision) {
+            if (resolveApplicationRequest.decision) {
             val updatedAccountCourse = foundAccountCourse.copy(
                 status = AccountCourseStatus.ACCEPTED
             )
 
-            val account = accountRepository.findByAccountId(accountId = resolveApplicationRequest.accountId)
+            val account = accountService.findByAccountId(resolveApplicationRequest.accountId)
             val tests = testRepository.findAllByCourse_CourseId(courseId = resolveApplicationRequest.courseId)
 
             tests.forEach { test ->
@@ -78,20 +80,17 @@ class CourseServiceImpl(
                 accountCourseTestRepository.save(AccountCourseTest(account = account, test = test, possiblePoints = possiblePoints.toInt()))
             }
 
-
             accountCourseRepository.save(updatedAccountCourse)
-            ResolveApplicationResponse(message = "Application accepted")
         } else {
             val updatedAccountCourse = foundAccountCourse.copy(
                 status = AccountCourseStatus.DECLINED
             )
 
             accountCourseRepository.save(updatedAccountCourse)
-            ResolveApplicationResponse(message = "Application declined")
         }
     }
 
-    fun getCoursesRelatedToAccount(accountId: Long): List<AccountAcceptedCourse> {
+    override fun getCoursesRelatedToAccount(accountId: Long): List<AccountAcceptedCourse> {
         val foundAccountCourses = accountCourseRepository.findAllByAccount_AccountIdAndStatus(accountId, AccountCourseStatus.ACCEPTED)
 
         return foundAccountCourses.map {
@@ -99,70 +98,8 @@ class CourseServiceImpl(
         }
     }
 
-    fun getUnresolvedTests(accountId: Long): List<CourseAccountTestsResponse> {
-        val foundAccountCourses = accountCourseRepository.findAllByAccount_AccountIdAndStatus(accountId, AccountCourseStatus.ACCEPTED)
-
-        val tmp = foundAccountCourses.map {
-            it.toCourseAccountTestsResponse()
-        }
-
-        return tmp
-    }
-
-    fun solveTest(solveTestRequest: SolveTestRequest): Any? {
-        var points = 0
-        val unresolvedTest = testRepository.findByTestId(solveTestRequest.testId)
-        val tasks = taskRepository.findAllByTest(unresolvedTest)
-        tasks.forEach() {
-            val currentTaskId = it.taskId
-            val userAnswer = solveTestRequest.testAnswers.firstNotNullOfOrNull { it[currentTaskId] }
-
-            if (userAnswer!!.toLong() == it.result.toLong()) {
-                points += it.points
-            }
-        }
-
-        val foundAccountCourseTest = accountCourseTestRepository.findByAccount_AccountIdAndTest_TestId(accountId = solveTestRequest.accountId, testId = unresolvedTest.testId)
-
-        val possiblePoints = foundAccountCourseTest.possiblePoints
-        val isPassed = points > (possiblePoints * 70) / 100
-
-        val updatedAccountCourseTest = foundAccountCourseTest.copy(
-            wonPoints = points,
-            passed = if (isPassed) YesNo.YES else YesNo.NO,
-            isCompleted = YesNo.YES
-        )
-
-        accountCourseTestRepository.save(updatedAccountCourseTest)
-
-        return if (isPassed) {
-            SolveCourseTestResponse(message = "You passed test")
-        } else {
-            SolveCourseTestResponse(message = "You failed test")
-        }
-    }
-
-    private fun AccountCourse.toCourseAccountTestsResponse(): CourseAccountTestsResponse =
-        CourseAccountTestsResponse(
-            courseId = this.course!!.courseId,
-            tests = this.course.tests.map {
-                it.toCourseTestResponse()
-            }
-        )
-
-    private fun Test.toCourseTestResponse(): CourseTestResponse =
-        CourseTestResponse(
-            testId = this.testId,
-            tasks = this.tasks!!.map {
-                it.toCourseTaskResponse()
-            }
-        )
-
-    private fun Task.toCourseTaskResponse(): CourseTaskResponse =
-        CourseTaskResponse(
-            taskId = this.taskId,
-            task = this.firstNumber + " " + this.operation + " " + this.secondNumber
-        )
+    override fun findByCourseId(courseId: Long): Course =
+        courseRepository.findByCourseId(courseId)
 
     private fun AccountCourse.toAccountAcceptedCourse(): AccountAcceptedCourse =
         AccountAcceptedCourse(
@@ -179,12 +116,11 @@ class CourseServiceImpl(
             accountUsername = this.account.username
         )
 
-    private fun Test.toCourseTestsResponse(): CourseTestsResponse =
-        CourseTestsResponse(
-            testId = this.testId,
-            courseId = this.course?.courseId!!
+    private fun Course.toResponse(): CourseResponse {
+        return CourseResponse(
+            courseId = this.courseId,
+            age = this.age,
+            dueDate = this.dueDate!!
         )
-
-    override fun findByCourseId(courseId: Long): Course =
-        courseRepository.findByCourseId(courseId)
+    }
 }

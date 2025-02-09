@@ -1,4 +1,4 @@
-package rs.playgroundmath.playgroundmath.payload.request.working
+package rs.playgroundmath.playgroundmath.payload.request
 
 data class ApiResponse<T>(
     val success: Boolean,

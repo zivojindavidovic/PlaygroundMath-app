@@ -4,7 +4,6 @@ import rs.playgroundmath.playgroundmath.model.Account
 import rs.playgroundmath.playgroundmath.payload.request.AccountCreateRequest
 import rs.playgroundmath.playgroundmath.payload.request.AccountDeleteRequest
 import rs.playgroundmath.playgroundmath.payload.response.AccountCreateResponse
-import rs.playgroundmath.playgroundmath.payload.response.AccountDeleteResponse
 import rs.playgroundmath.playgroundmath.payload.response.AccountRankListResponse
 import rs.playgroundmath.playgroundmath.payload.response.AccountRelatedToUserResponse
 

@@ -13,4 +13,6 @@ interface AccountCourseRepository: JpaRepository<AccountCourse, AccountCourseId>
     fun findByCourse_CourseIdAndAccount_AccountId(courseId: Long, accountId: Long): AccountCourse
 
     fun findAllByAccount_AccountIdAndStatus(accountId: Long, status: AccountCourseStatus): List<AccountCourse>
+
+    fun findAllByAccount_AccountIdAndStatusAndCourse_CourseId(accountId: Long, status: AccountCourseStatus, courseId: Long): List<AccountCourse>
 }

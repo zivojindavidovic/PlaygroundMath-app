@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import rs.playgroundmath.playgroundmath.payload.request.AuthenticationRequest
-import rs.playgroundmath.playgroundmath.payload.request.working.ApiResponse
+import rs.playgroundmath.playgroundmath.payload.request.ApiResponse
 import rs.playgroundmath.playgroundmath.payload.response.AuthenticationResponse
 import rs.playgroundmath.playgroundmath.service.AuthenticationServiceImpl
 

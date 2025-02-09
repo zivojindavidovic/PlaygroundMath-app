@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import rs.playgroundmath.playgroundmath.payload.request.GenerateTasksRequest
 import rs.playgroundmath.playgroundmath.payload.request.SolveTestRequest
-import rs.playgroundmath.playgroundmath.payload.request.working.ApiResponse
+import rs.playgroundmath.playgroundmath.payload.request.ApiResponse
 import rs.playgroundmath.playgroundmath.payload.response.SolveTestResponse
 import rs.playgroundmath.playgroundmath.payload.response.TaskGenerateResponse
 import rs.playgroundmath.playgroundmath.payload.response.TaskUnresolvedTestResponse

@@ -8,5 +8,6 @@ import rs.playgroundmath.playgroundmath.model.Course
 interface CourseRepository: JpaRepository<Course, Long> {
 
     fun findByCourseId(courseId: Long): Course
+
     fun findAllByUser_UserId(userId: Long): List<Course>
 }

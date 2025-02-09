@@ -7,7 +7,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import rs.playgroundmath.playgroundmath.exceptions.*
-import rs.playgroundmath.playgroundmath.payload.request.working.ApiResponse
+import rs.playgroundmath.playgroundmath.payload.request.ApiResponse
 
 @ControllerAdvice
 class GlobalExceptionHandler {
