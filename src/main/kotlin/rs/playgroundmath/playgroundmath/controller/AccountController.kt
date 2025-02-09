@@ -34,7 +34,7 @@ class AccountController(
         )
     }
 
-    @DeleteMapping("/delete}")
+    @DeleteMapping("/delete")
     fun delete(@RequestBody accountDeleteRequest: AccountDeleteRequest): ResponseEntity<ApiResponse<Any>> {
         accountService.deleteAccount(accountDeleteRequest)
 
