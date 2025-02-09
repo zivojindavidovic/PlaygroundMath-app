@@ -1,15 +1,17 @@
 package rs.playgroundmath.playgroundmath.service
 
-import jakarta.transaction.Transactional
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import rs.playgroundmath.playgroundmath.common.Functions
 import rs.playgroundmath.playgroundmath.exceptions.AccountMaximumPerUserException
 import rs.playgroundmath.playgroundmath.exceptions.AccountNotFoundException
+import rs.playgroundmath.playgroundmath.exceptions.DeleteAccountPasswordDoNotMatchException
 import rs.playgroundmath.playgroundmath.exceptions.UserNotFoundException
 import rs.playgroundmath.playgroundmath.model.Account
 import rs.playgroundmath.playgroundmath.model.User
 import rs.playgroundmath.playgroundmath.payload.request.AccountCreateRequest
-import rs.playgroundmath.playgroundmath.payload.request.UpdateAccountRequest
+import rs.playgroundmath.playgroundmath.payload.request.AccountDeleteRequest
 import rs.playgroundmath.playgroundmath.payload.response.*
 import rs.playgroundmath.playgroundmath.repository.AccountRepository
 
@@ -34,6 +36,44 @@ class AccountServiceImpl(
         return account.toResponse()
     }
 
+    override fun deleteAccount(accountDeleteRequest: AccountDeleteRequest) {
+        val account = accountRepository.findById(accountDeleteRequest.accountId).orElseThrow {
+            AccountNotFoundException("Account with id: ${accountDeleteRequest.accountId} not found")
+        }
+
+        val user = account.user ?: throw UserNotFoundException("User not found")
+
+        val isPasswordValid = encoder().matches(accountDeleteRequest.userPassword, user.password)
+
+        if (!isPasswordValid) {
+            throw DeleteAccountPasswordDoNotMatchException("Uneta šifra nije ispravna. Nalog nije obrisan")
+        }
+
+        accountRepository.delete(account)
+    }
+
+    override fun getAccountsRelatedToUserId(userId: Long): AccountRelatedToUserResponse {
+        val foundUser = userService.findByUserId(userId)
+            ?: throw UserNotFoundException("Korisnik sa kojim pokušavaš da kreiraš nalog ne postoji")
+
+        return accountRepository.findAllByUser(foundUser).toResponse()
+    }
+
+    override fun getRankList(): List<AccountRankListResponse> =
+        accountRepository.findAllByOrderByPointsDesc().map {
+            it.toRankListResponse()
+        }
+
+    override fun findByAccountId(accountId: Long): Account =
+        accountRepository.findByAccountId(accountId)
+
+    override fun getAccountPoints(accountId: Long): Long {
+        return findByAccountId(accountId).points
+    }
+
+    override fun saveAccount(account: Account): Account =
+        accountRepository.save(account)
+
     private fun Account.toResponse(): AccountCreateResponse =
         AccountCreateResponse(
             id = this.accountId,
@@ -41,44 +81,16 @@ class AccountServiceImpl(
             userId = this.user!!.userId
         )
 
-    @Transactional
-    fun deleteAccount(accountId: Long): AccountDeleteResponse {
-        val account = accountRepository.findById(accountId).orElseThrow {
-            AccountNotFoundException("Account with id: $accountId not found")
-        }
-
-        accountRepository.delete(account)
-
-        return AccountDeleteResponse("Account ${account.username} deleted successfully")
-    }
-
-    fun updateAccount(updateAccountRequest: UpdateAccountRequest): UpdateAccountResponse {
-        val foundAccount = accountRepository.findById(updateAccountRequest.accountId)
-
-        if (foundAccount.isPresent) {
-            val updatedAccount = foundAccount.get().copy(
-                username = updateAccountRequest.username
-            )
-
-            accountRepository.save(updatedAccount)
-        } else {
-            throw AccountNotFoundException("Account ${foundAccount.get().accountId} not found")
-        }
-
-        return UpdateAccountResponse(foundAccount.get().accountId, updateAccountRequest.username, foundAccount.get().points)
-    }
-
-    fun getAccountsRelatedToUserId(userId: Long): List<Account> {
-        val foundUser = userService.findByUserId(userId)
-            ?: throw UserNotFoundException("Korisnik sa kojim pokušavaš da kreiraš nalog ne postoji")
-
-        return accountRepository.findAllByUser(foundUser)
-    }
-
-    fun getRankList(): List<AccountRankListResponse> =
-        accountRepository.findAllByOrderByPointsDesc().map {
-            it.toRankListResponse()
-        }
+    private fun List<Account>.toResponse(): AccountRelatedToUserResponse =
+        AccountRelatedToUserResponse(
+            accounts = this.map { account ->
+                AccountResponse(
+                    accountId = account.accountId,
+                    username = account.username,
+                    points = account.points
+                )
+            }
+        )
 
     private fun Account.toRankListResponse(): AccountRankListResponse =
         AccountRankListResponse(
@@ -93,13 +105,5 @@ class AccountServiceImpl(
         return accountRepository.countByUser(currentUser!!)
     }
 
-    override fun findByAccountId(accountId: Long): Account =
-        accountRepository.findByAccountId(accountId)
-
-    override fun getAccountPoints(accountId: Long): Long {
-        return findByAccountId(accountId).points
-    }
-
-    override fun saveAccount(account: Account): Account =
-        accountRepository.save(account)
+    private fun encoder(): PasswordEncoder = BCryptPasswordEncoder()
 }

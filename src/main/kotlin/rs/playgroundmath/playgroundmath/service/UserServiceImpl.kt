@@ -7,7 +7,7 @@ import rs.playgroundmath.playgroundmath.exceptions.UserAlreadyExistsException
 import rs.playgroundmath.playgroundmath.exceptions.UserNotFoundException
 import rs.playgroundmath.playgroundmath.enums.RoleType
 import rs.playgroundmath.playgroundmath.enums.Status
-import rs.playgroundmath.playgroundmath.exceptions.DeleteAccountPasswordDoNotMatchException
+import rs.playgroundmath.playgroundmath.exceptions.DeleteUserPasswordDoNotMatchException
 import rs.playgroundmath.playgroundmath.model.*
 import rs.playgroundmath.playgroundmath.payload.request.UserDeleteRequest
 import rs.playgroundmath.playgroundmath.payload.request.UserRegisterRequest
@@ -72,7 +72,7 @@ class UserServiceImpl(
         val isPasswordValid = encoder().matches(userDeleteRequest.password, user.password)
 
         if (!isPasswordValid) {
-            throw DeleteAccountPasswordDoNotMatchException("Uneta šifra nije ispravna. Nalog nije obrisan")
+            throw DeleteUserPasswordDoNotMatchException("Uneta šifra nije ispravna. Nalog nije obrisan")
         }
 
         userRepository.delete(user)

@@ -38,6 +38,19 @@ class GlobalExceptionHandler {
         return ResponseEntity(response, HttpStatus.CONFLICT)
     }
 
+    @ExceptionHandler(DeleteUserPasswordDoNotMatchException::class)
+    fun handleDeleteUserPasswordDoNotMatchException(ex: DeleteUserPasswordDoNotMatchException): ResponseEntity<ApiResponse<Any>> {
+        val errors = listOf(mapOf("password" to (ex.message ?: "Neispravna šifra")))
+
+        val response = ApiResponse<Any>(
+            success = false,
+            errors = errors,
+            results = emptyList()
+        )
+
+        return ResponseEntity(response, HttpStatus.CONFLICT)
+    }
+
     @ExceptionHandler(DeleteAccountPasswordDoNotMatchException::class)
     fun handleDeleteAccountPasswordDoNotMatchException(ex: DeleteAccountPasswordDoNotMatchException): ResponseEntity<ApiResponse<Any>> {
         val errors = listOf(mapOf("password" to (ex.message ?: "Neispravna šifra")))
