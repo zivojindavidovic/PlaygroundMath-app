@@ -24,4 +24,8 @@ class ConfirmationTokenServiceImpl(
 
         return confirmationTokenRepository.save(confirmationToken)
     }
+
+    override fun findTokenByToken(token: String): ConfirmationToken? {
+        return confirmationTokenRepository.findByToken(token)
+    }
 }

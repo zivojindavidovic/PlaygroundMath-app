@@ -6,4 +6,6 @@ import rs.playgroundmath.playgroundmath.model.User
 interface ConfirmationTokenService {
 
     fun createConfirmationToken(user: User): ConfirmationToken
+
+    fun findTokenByToken(token: String): ConfirmationToken?
 }
