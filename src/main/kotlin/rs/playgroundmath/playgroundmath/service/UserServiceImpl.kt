@@ -6,16 +6,20 @@ import org.springframework.stereotype.Service
 import rs.playgroundmath.playgroundmath.exceptions.UserAlreadyExistsException
 import rs.playgroundmath.playgroundmath.exceptions.UserNotFoundException
 import rs.playgroundmath.playgroundmath.enums.RoleType
+import rs.playgroundmath.playgroundmath.enums.Status
+import rs.playgroundmath.playgroundmath.exceptions.DeleteAccountPasswordDoNotMatchException
 import rs.playgroundmath.playgroundmath.model.*
+import rs.playgroundmath.playgroundmath.payload.request.UserDeleteRequest
 import rs.playgroundmath.playgroundmath.payload.request.UserRegisterRequest
 import rs.playgroundmath.playgroundmath.payload.response.*
 import rs.playgroundmath.playgroundmath.repository.UserRepository
+import java.time.LocalDateTime
 
 @Service
 class UserServiceImpl(
     private val userRepository: UserRepository,
     private val roleService: RoleService,
-    private val courseService: CourseServiceImpl,
+    private val courseService: CourseService,
     private val communicationService: CommunicationService,
     private val confirmationTokenService: ConfirmationTokenService
 ): UserService {
@@ -35,29 +39,46 @@ class UserServiceImpl(
         val savedUser = userRepository.save(user)
 
         val confirmationToken = confirmationTokenService.createConfirmationToken(savedUser)
-        val confirmationLink = "http://0.0.0.0:8080/confirm?token=${confirmationToken.token}"
+        val confirmationLink = "http://0.0.0.0:5173/confirm?token=${confirmationToken.token}"
 
         communicationService.sendUserRegistrationConfirmationEmail(user.email, confirmationLink)
 
         return savedUser.toResponse()
     }
 
-    fun deleteUser(userId: Long): DeleteUserResponse {
-        val foundUser = userRepository.findById(userId)
+    override fun confirmUserRegistration(token: String): Boolean {
+        val confirmationToken = confirmationTokenService.findTokenByToken(token) ?: return false
 
-        if (foundUser.isPresent) {
-            userRepository.delete(foundUser.get())
+        val isTokenExpired = confirmationToken.expiresAt.isBefore(LocalDateTime.now())
+        val user = findByUserId(confirmationToken.userId)
+
+        return if (!isTokenExpired) {
+            val updatedUser = user!!.copy(
+                status = Status.ACTIVE
+            )
+
+            userRepository.save(updatedUser)
+
+            true
         } else {
-            throw UserNotFoundException("User with ID: $userId not found")
+            communicationService.sendUserRegistrationConfirmationEmail(user!!.email, "http://0.0.0.0:5173/confirm?token=${token}")
+            false
         }
-
-        return DeleteUserResponse("User successfully deleted")
     }
 
-    fun getUserByEmail(email: String): User? =
-        userRepository.findByEmail(email)
+    override fun deleteUser(userDeleteRequest: UserDeleteRequest) {
+        val user = findByUserId(userDeleteRequest.userId) ?: throw UserNotFoundException("User with ID: ${userDeleteRequest.userId} not found")
 
-    fun getAllTeachers(): List<UserTeachersResponse> {
+        val isPasswordValid = encoder().matches(userDeleteRequest.password, user.password)
+
+        if (!isPasswordValid) {
+            throw DeleteAccountPasswordDoNotMatchException("Uneta šifra nije ispravna. Nalog nije obrisan")
+        }
+
+        userRepository.delete(user)
+    }
+
+    override fun getAllTeachers(): List<UserTeachersResponse> {
         val role = roleService.findRoleByRoleType(RoleType.TEACHER)
 
         val teachers = userRepository.findAllByRole_RoleId(roleId = role!!.roleId)
@@ -66,35 +87,12 @@ class UserServiceImpl(
         }
     }
 
-    fun getAllTeacherCourses(teacherId: Long): List<UserTeacherCourseResponse> {
-        val courses = courseService.findAllByUserId(teacherId)
-        return courses.map {
-            it.toUserTeacherCourseResponse()
-        }
-    }
+    override fun findByEmail(email: String): User? =
+        userRepository.findByEmail(email)
 
-    fun getAllChildren(userId: Long): List<UserAccountsResponse> {
-        return userRepository.findByUserId(userId)?.accounts?.map {
-            it.toUserAccountsResponse()
-        } ?: emptyList()
-    }
 
     override fun findByUserId(userId: Long): User? =
         userRepository.findByUserId(userId)
-
-    private fun Account.toUserAccountsResponse(): UserAccountsResponse {
-        return UserAccountsResponse(
-            accountId = this.accountId,
-            accountData = this.username + " " + this.age + "y"
-        )
-    }
-
-    private fun Course.toUserTeacherCourseResponse(): UserTeacherCourseResponse =
-        UserTeacherCourseResponse(
-            courseId = this.courseId,
-            age = this.age.toLong(),
-            dueDate = this.dueDate.toString()
-        )
 
     private fun User.toTeacherResponse(): UserTeachersResponse =
         UserTeachersResponse(
@@ -103,12 +101,12 @@ class UserServiceImpl(
             numberOfActiveCourses = 0
         )
 
-    private fun encoder(): PasswordEncoder = BCryptPasswordEncoder()
-
     private fun User.toResponse(): UserRegisterResponse {
         return UserRegisterResponse(
             id = this.userId,
             email = this.email
         )
     }
+
+    private fun encoder(): PasswordEncoder = BCryptPasswordEncoder()
 }

@@ -42,7 +42,7 @@ class SecurityConfiguration(
             .cors { it.configurationSource(corsConfigurationSource()) }
             .authorizeHttpRequests {
                 it
-                    .requestMatchers("/api/v1/user/register", "/api/v1/auth/login", "/error")
+                    .requestMatchers("/api/v1/user/register", "/api/v1/user/confirm", "/api/v1/auth/login", "/error")
                     .permitAll()
                     .requestMatchers(HttpMethod.OPTIONS, "/**")
                     .permitAll()

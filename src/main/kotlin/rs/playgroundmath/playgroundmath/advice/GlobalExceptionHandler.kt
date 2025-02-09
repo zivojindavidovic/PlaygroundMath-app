@@ -6,10 +6,7 @@ import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
-import rs.playgroundmath.playgroundmath.exceptions.AccountMaximumPerUserException
-import rs.playgroundmath.playgroundmath.exceptions.TaskUserHasUnresolvedException
-import rs.playgroundmath.playgroundmath.exceptions.UserAlreadyExistsException
-import rs.playgroundmath.playgroundmath.exceptions.UserStatusNotActiveException
+import rs.playgroundmath.playgroundmath.exceptions.*
 import rs.playgroundmath.playgroundmath.payload.request.working.ApiResponse
 
 @ControllerAdvice
@@ -31,6 +28,19 @@ class GlobalExceptionHandler {
     @ExceptionHandler(TaskUserHasUnresolvedException::class)
     fun handleTaskUserHasUnresolvedException(ex: TaskUserHasUnresolvedException): ResponseEntity<ApiResponse<Any>> {
         val errors = listOf(mapOf("task" to (ex.message ?: "Invalid value")))
+
+        val response = ApiResponse<Any>(
+            success = false,
+            errors = errors,
+            results = emptyList()
+        )
+
+        return ResponseEntity(response, HttpStatus.CONFLICT)
+    }
+
+    @ExceptionHandler(DeleteAccountPasswordDoNotMatchException::class)
+    fun handleDeleteAccountPasswordDoNotMatchException(ex: DeleteAccountPasswordDoNotMatchException): ResponseEntity<ApiResponse<Any>> {
+        val errors = listOf(mapOf("password" to (ex.message ?: "Neispravna šifra")))
 
         val response = ApiResponse<Any>(
             success = false,

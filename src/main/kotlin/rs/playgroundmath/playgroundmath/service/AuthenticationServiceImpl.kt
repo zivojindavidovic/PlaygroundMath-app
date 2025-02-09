@@ -30,7 +30,7 @@ class AuthenticationServiceImpl(
 
         val user = userDetailsService.loadUserByUsername(authRequest.email)
         val email = user.username
-        val applicationUser = userService.getUserByEmail(email)
+        val applicationUser = userService.findByEmail(email)
 
         if (applicationUser!!.status == Status.PENDING) {
             throw UserStatusNotActiveException("Nalog sa ovom e adresom nije aktivan")
@@ -41,7 +41,7 @@ class AuthenticationServiceImpl(
             expirationDate = Date(System.currentTimeMillis() + jwtProperties.accessTokenExpiration)
         )
 
-        val loggedInUser = userService.getUserByEmail(user.username)
+        val loggedInUser = userService.findByEmail(user.username)
         val isTeacher = loggedInUser!!.role.roleType == RoleType.TEACHER
 
         return AuthenticationResponse(
