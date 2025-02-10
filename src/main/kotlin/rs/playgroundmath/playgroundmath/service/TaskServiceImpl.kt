@@ -43,9 +43,9 @@ class TaskServiceImpl(
         }
 
         return if (generateTasksRequest.testType == "pdf" || generateTasksRequest.testType == "coursePdf") {
-            generatePdfTasks(generateTasksRequest.numberOneFrom, generateTasksRequest.numberOneTo, generateTasksRequest.numberTwoFrom, generateTasksRequest.numberTwoTo, operations)
+            generatePdfTasks(generateTasksRequest.numberOneFrom, generateTasksRequest.numberOneTo, generateTasksRequest.numberTwoFrom, generateTasksRequest.numberTwoTo, operations, generateTasksRequest)
         } else {
-            generateOnlineTasks(generateTasksRequest.numberOneFrom, generateTasksRequest.numberOneTo, generateTasksRequest.numberTwoFrom, generateTasksRequest.numberTwoTo, operations, accountId, courseId)
+            generateOnlineTasks(generateTasksRequest.numberOneFrom, generateTasksRequest.numberOneTo, generateTasksRequest.numberTwoFrom, generateTasksRequest.numberTwoTo, operations, accountId, courseId, generateTasksRequest)
         }
     }
 
@@ -94,11 +94,11 @@ class TaskServiceImpl(
         )
     }
 
-    private fun generatePdfTasks(numberOneFrom: Long, numberOneTo: Long, numberTwoFrom: Long, numberTwoTo: Long, operations: MutableList<String>): TaskGenerateResponse {
+    private fun generatePdfTasks(numberOneFrom: Long, numberOneTo: Long, numberTwoFrom: Long, numberTwoTo: Long, operations: MutableList<String>, request: GenerateTasksRequest): TaskGenerateResponse {
         val tasks = mutableListOf<String>()
 
         for (i in 1..20) {
-            val taskInformation = generateRuleBasedTasks(numberOneFrom, numberOneTo, numberTwoFrom, numberTwoTo, operations)
+            val taskInformation = generateRuleBasedTasks(numberOneFrom, numberOneTo, numberTwoFrom, numberTwoTo, operations, request)
             val task = "${taskInformation["firstNumber"]} ${taskInformation["operation"]} ${taskInformation["secondNumber"]} = "
 
             tasks.add(task)
@@ -109,7 +109,7 @@ class TaskServiceImpl(
         )
     }
 
-    private fun generateOnlineTasks(numberOneFrom: Long, numberOneTo: Long, numberTwoFrom: Long, numberTwoTo: Long, operations: MutableList<String>, accountId: Long?, courseId: Long?): TaskGenerateResponse {
+    private fun generateOnlineTasks(numberOneFrom: Long, numberOneTo: Long, numberTwoFrom: Long, numberTwoTo: Long, operations: MutableList<String>, accountId: Long?, courseId: Long?, request: GenerateTasksRequest): TaskGenerateResponse {
         var test: Test? = null
 
         if (accountId != null) {
@@ -128,7 +128,7 @@ class TaskServiceImpl(
         }
 
         for(i in 1..20) {
-            val taskInformation = generateRuleBasedTasks(numberOneFrom, numberOneTo, numberTwoFrom, numberTwoTo, operations)
+            val taskInformation = generateRuleBasedTasks(numberOneFrom, numberOneTo, numberTwoFrom, numberTwoTo, operations, request)
 
             val points = when (taskInformation["operation"]) {
                 "+" -> 1
@@ -149,12 +149,13 @@ class TaskServiceImpl(
         numberOneTo: Long,
         numberTwoFrom: Long,
         numberTwoTo: Long,
-        operations: MutableList<String>
+        operations: MutableList<String>,
+        request: GenerateTasksRequest
     ): Map<String, Any> {
         val operation = operations.random()
 
         val firstNumber = Random.nextLong(numberOneFrom, numberOneTo)
-        val secondNumber = generateSecondNumberBasedOnFirstNumber(firstNumber, numberTwoFrom, numberTwoTo, operation)
+        val secondNumber = generateSecondNumberBasedOnFirstNumber(firstNumber, numberTwoFrom, numberTwoTo, operation, request)
 
         val result = when (operation) {
             "+" -> firstNumber + secondNumber
@@ -172,21 +173,18 @@ class TaskServiceImpl(
         )
     }
 
-    private fun generateSecondNumberBasedOnFirstNumber(firstNumber: Long, numberTwoFrom: Long, numberTwoTo: Long, operations: String): Long {
+    private fun generateSecondNumberBasedOnFirstNumber(firstNumber: Long, numberTwoFrom: Long, numberTwoTo: Long, operations: String, request: GenerateTasksRequest): Long {
         return when (operations) {
-            "+" -> generateSecondNumberForSum(firstNumber, numberTwoFrom, numberTwoTo)
-            "-" -> generateSecondNumberForSub(firstNumber, numberTwoFrom, numberTwoTo)
-            "*" -> generateSecondNumberForMul(firstNumber, numberTwoFrom, numberTwoTo)
+            "+" -> generateSecondNumberForSum(firstNumber, numberTwoFrom, numberTwoTo, request.sumUnitsGoesOverCurrentTenSum, request.sumExceedTwoDigitsSum)
+            "-" -> generateSecondNumberForSub(firstNumber, numberTwoFrom, numberTwoTo, request.allowedNegativeResultsSub, request.allowedBiggerUnitsInSecondNumberSub)
+            "*" -> generateSecondNumberForMul(firstNumber, numberTwoFrom, numberTwoTo, request.allowedThreeDigitsResultMul)
             "/" -> generateSecondNumberForDiv(firstNumber, numberTwoFrom, numberTwoTo)
             else -> {1}
         }
     }
 
-    private fun generateSecondNumberForSum(firstNumber: Long, numberTwoFrom: Long, numberTwoTo: Long,): Long {
-        val sumUnitsKeepCurrentTen = true
-        val sumExceedTwoDigits = false
-
-        val candidatesNoUnitsCarry = if (sumUnitsKeepCurrentTen) {
+    private fun generateSecondNumberForSum(firstNumber: Long, numberTwoFrom: Long, numberTwoTo: Long, sumUnitsGoesOverCurrentTen: Boolean, sumExceedTwoDigits: Boolean): Long {
+        val candidatesNoUnitsCarry = if (!sumUnitsGoesOverCurrentTen) {
             (numberTwoFrom..numberTwoTo).filter { second ->
                 ((firstNumber % 10) + (second % 10)) < 10
             }
@@ -209,15 +207,12 @@ class TaskServiceImpl(
         return candidatesNoThreeDigits.random()
     }
 
-    private fun generateSecondNumberForSub(firstNumber: Long, numberTwoFrom: Long, numberTwoTo: Long,): Long {
-        val allowedNegativeResults = true
-        val allowedBiggerUnitsInSecondNumber = true
-
+    private fun generateSecondNumberForSub(firstNumber: Long, numberTwoFrom: Long, numberTwoTo: Long, allowedNegativeResults: Boolean, allowedBiggerUnitsInSecondNumber: Boolean): Long {
         val range = numberTwoFrom..numberTwoTo
 
         val validCandidates = range.filter { second ->
             val noNegativeCondition = if (!allowedNegativeResults) {
-                second <= firstNumber
+                second < firstNumber
             } else {
                 true
             }
@@ -238,9 +233,7 @@ class TaskServiceImpl(
         return validCandidates.random()
     }
 
-    private fun generateSecondNumberForMul(firstNumber: Long, numberTwoFrom: Long, numberTwoTo: Long,): Long {
-        val allowedThreeDigitsResult = true
-
+    private fun generateSecondNumberForMul(firstNumber: Long, numberTwoFrom: Long, numberTwoTo: Long, allowedThreeDigitsResult: Boolean): Long {
         val range = numberTwoFrom..numberTwoTo
 
         return if (allowedThreeDigitsResult) {
@@ -264,8 +257,7 @@ class TaskServiceImpl(
         val range = numberTwoFrom..numberTwoTo
 
         val candidatesForDivision = range.filter { second ->
-            val result = firstNumber.toDouble() / second.toDouble()
-            (result % 1) == 0.0
+            second != 0L && firstNumber % second == 0L
         }
 
         if (candidatesForDivision.isEmpty()) {

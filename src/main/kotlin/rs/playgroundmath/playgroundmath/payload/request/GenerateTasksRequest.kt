@@ -8,5 +8,10 @@ data class GenerateTasksRequest(
     val operations: MutableList<String> = mutableListOf("+"),
     val testType: String = "pdf",
     val accountId: Long? = null,
-    val courseId: Long? = null
+    val courseId: Long? = null,
+    val sumUnitsGoesOverCurrentTenSum: Boolean = false,
+    val sumExceedTwoDigitsSum: Boolean = false,
+    val allowedNegativeResultsSub: Boolean = false,
+    val allowedBiggerUnitsInSecondNumberSub: Boolean = false,
+    val allowedThreeDigitsResultMul: Boolean = false
 )
