@@ -34,6 +34,10 @@ dependencies {
     testImplementation("org.springframework.security:spring-security-test")
     runtimeOnly("com.mysql:mysql-connector-j:8.2.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+    testImplementation("io.mockk:mockk:1.13.5")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
+    testImplementation("io.kotest:kotest-assertions-core:5.5.4")
 }
 
 kotlin {
