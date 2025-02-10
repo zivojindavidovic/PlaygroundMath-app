@@ -19,7 +19,6 @@ import java.time.LocalDateTime
 class UserServiceImpl(
     private val userRepository: UserRepository,
     private val roleService: RoleService,
-    private val courseService: CourseService,
     private val communicationService: CommunicationService,
     private val confirmationTokenService: ConfirmationTokenService
 ): UserService {

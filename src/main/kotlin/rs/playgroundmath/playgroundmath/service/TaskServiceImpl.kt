@@ -233,7 +233,12 @@ class TaskServiceImpl(
         return validCandidates.random()
     }
 
-    private fun generateSecondNumberForMul(firstNumber: Long, numberTwoFrom: Long, numberTwoTo: Long, allowedThreeDigitsResult: Boolean): Long {
+    private fun generateSecondNumberForMul(
+        firstNumber: Long,
+        numberTwoFrom: Long,
+        numberTwoTo: Long,
+        allowedThreeDigitsResult: Boolean = false
+    ): Long {
         val range = numberTwoFrom..numberTwoTo
 
         return if (allowedThreeDigitsResult) {
