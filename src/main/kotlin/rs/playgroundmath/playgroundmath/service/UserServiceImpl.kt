@@ -94,7 +94,7 @@ class UserServiceImpl(
         userRepository.findByUserId(userId)
 
     override fun getAll(): List<AdminUserResponse> {
-        val users = userRepository.findAll()
+        val users = userRepository.findAllByRole_RoleTypeNot(RoleType.ADMIN)
 
         return users.map { user ->
             AdminUserResponse(
@@ -104,6 +104,10 @@ class UserServiceImpl(
                 isTeacher = user.role.roleType == RoleType.TEACHER
             )
         }
+    }
+
+    override fun deleteUserByAdmin(userId: Long) {
+        userRepository.deleteById(userId)
     }
 
     private fun User.toTeacherResponse(): UserTeachersResponse =

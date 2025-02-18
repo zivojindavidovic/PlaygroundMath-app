@@ -22,4 +22,6 @@ interface UserService {
     fun findByUserId(userId: Long): User?
 
     fun getAll(): List<AdminUserResponse>
+
+    fun deleteUserByAdmin(userId: Long)
 }

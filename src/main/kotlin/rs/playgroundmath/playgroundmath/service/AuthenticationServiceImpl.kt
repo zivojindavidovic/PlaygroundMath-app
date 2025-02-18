@@ -38,7 +38,8 @@ class AuthenticationServiceImpl(
 
         val accessToken = tokenService.generateToken(
             userDetails = user,
-            expirationDate = Date(System.currentTimeMillis() + jwtProperties.accessTokenExpiration)
+            expirationDate = Date(System.currentTimeMillis() + jwtProperties.accessTokenExpiration),
+            additionalClaims = mapOf("role" to applicationUser.role.roleType.toString())
         )
 
         val loggedInUser = userService.findByEmail(user.username)

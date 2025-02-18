@@ -97,6 +97,10 @@ class AccountServiceImpl(
         saveAccount(updatedAccount)
     }
 
+    override fun deleteAccountByAdmin(accountId: Long) {
+        accountRepository.deleteById(accountId)
+    }
+
     private fun Account.toResponse(): AccountCreateResponse =
         AccountCreateResponse(
             id = this.accountId,
