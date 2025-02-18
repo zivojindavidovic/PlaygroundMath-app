@@ -93,6 +93,19 @@ class UserServiceImpl(
     override fun findByUserId(userId: Long): User? =
         userRepository.findByUserId(userId)
 
+    override fun getAll(): List<AdminUserResponse> {
+        val users = userRepository.findAll()
+
+        return users.map { user ->
+            AdminUserResponse(
+                id = user.userId,
+                email = user.email,
+                isParent = user.role.roleType == RoleType.PARENT,
+                isTeacher = user.role.roleType == RoleType.TEACHER
+            )
+        }
+    }
+
     private fun User.toTeacherResponse(): UserTeachersResponse =
         UserTeachersResponse(
             teacherId = this.userId,

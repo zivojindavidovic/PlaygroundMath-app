@@ -12,6 +12,7 @@ import rs.playgroundmath.playgroundmath.model.Account
 import rs.playgroundmath.playgroundmath.model.User
 import rs.playgroundmath.playgroundmath.payload.request.AccountCreateRequest
 import rs.playgroundmath.playgroundmath.payload.request.AccountDeleteRequest
+import rs.playgroundmath.playgroundmath.payload.request.AdminUpdateAccountPointsRequest
 import rs.playgroundmath.playgroundmath.payload.response.*
 import rs.playgroundmath.playgroundmath.repository.AccountRepository
 
@@ -73,6 +74,28 @@ class AccountServiceImpl(
 
     override fun saveAccount(account: Account): Account =
         accountRepository.save(account)
+
+    override fun getAllAccounts(): List<AccountResponse> {
+        val accounts = accountRepository.findAll()
+
+        return accounts.map { account ->
+            AccountResponse(
+                accountId = account.accountId,
+                username = account.username,
+                points = account.points
+            )
+        }
+    }
+
+    override fun updateAccountPoints(adminUpdateAccountPointsRequest: AdminUpdateAccountPointsRequest) {
+        val account = findByAccountId(adminUpdateAccountPointsRequest.accountId)
+
+        val updatedAccount = account.copy(
+            points = adminUpdateAccountPointsRequest.points
+        )
+
+        saveAccount(updatedAccount)
+    }
 
     private fun Account.toResponse(): AccountCreateResponse =
         AccountCreateResponse(

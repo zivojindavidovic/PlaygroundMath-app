@@ -3,6 +3,7 @@ package rs.playgroundmath.playgroundmath.service
 import rs.playgroundmath.playgroundmath.model.User
 import rs.playgroundmath.playgroundmath.payload.request.UserDeleteRequest
 import rs.playgroundmath.playgroundmath.payload.request.UserRegisterRequest
+import rs.playgroundmath.playgroundmath.payload.response.AdminUserResponse
 import rs.playgroundmath.playgroundmath.payload.response.UserRegisterResponse
 import rs.playgroundmath.playgroundmath.payload.response.UserTeachersResponse
 
@@ -19,4 +20,6 @@ interface UserService {
     fun findByEmail(email: String): User?
 
     fun findByUserId(userId: Long): User?
+
+    fun getAll(): List<AdminUserResponse>
 }
