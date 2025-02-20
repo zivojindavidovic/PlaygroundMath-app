@@ -30,4 +30,6 @@ interface AccountService {
     fun updateAccountPoints(adminUpdateAccountPointsRequest: AdminUpdateAccountPointsRequest)
 
     fun deleteAccountByAdmin(accountId: Long)
+
+    fun getAccountById(accountId: Long): AccountResponse
 }

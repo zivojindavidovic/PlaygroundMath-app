@@ -101,6 +101,17 @@ class AccountServiceImpl(
         accountRepository.deleteById(accountId)
     }
 
+    override fun getAccountById(accountId: Long): AccountResponse {
+        return findByAccountId(accountId).toAccountResponse()
+    }
+
+    private fun Account.toAccountResponse(): AccountResponse =
+        AccountResponse(
+            accountId = this.accountId,
+            username = this.username,
+            points = this.points
+        )
+
     private fun Account.toResponse(): AccountCreateResponse =
         AccountCreateResponse(
             id = this.accountId,

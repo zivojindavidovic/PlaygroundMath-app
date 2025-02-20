@@ -63,5 +63,9 @@ class AccountController(
     @GetMapping("/rankList")
     fun getRankList(): List<AccountRankListResponse> =
         accountService.getRankList()
+
+    @GetMapping("/get")
+    fun getById(@RequestParam("accountId") accountId: Long): AccountResponse =
+        accountService.getAccountById(accountId)
 }
 
