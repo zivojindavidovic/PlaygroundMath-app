@@ -13,5 +13,6 @@ interface TestRepository: JpaRepository<Test, Long> {
     fun findByAccount_AccountIdAndIsCompleted(accountId: Long, isCompleted: YesNo): Test
 
     fun findAllByCourse_CourseId(courseId: Long): List<Test>
+
     fun findByTestId(testId: Long): Test
 }

@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service
 import rs.playgroundmath.playgroundmath.enums.AccountCourseStatus
 import rs.playgroundmath.playgroundmath.enums.YesNo
 import rs.playgroundmath.playgroundmath.model.AccountCourse
+import rs.playgroundmath.playgroundmath.model.AccountCourseTest
 import rs.playgroundmath.playgroundmath.model.Task
 import rs.playgroundmath.playgroundmath.model.Test
 import rs.playgroundmath.playgroundmath.payload.response.CourseAccountTestsResponse
@@ -11,12 +12,14 @@ import rs.playgroundmath.playgroundmath.payload.response.CourseTaskResponse
 import rs.playgroundmath.playgroundmath.payload.response.CourseTestResponse
 import rs.playgroundmath.playgroundmath.payload.response.CourseTestsResponse
 import rs.playgroundmath.playgroundmath.repository.AccountCourseRepository
+import rs.playgroundmath.playgroundmath.repository.AccountCourseTestRepository
 import rs.playgroundmath.playgroundmath.repository.TestRepository
 
 @Service
 class TestServiceImpl(
     private val testRepository: TestRepository,
-    private val accountCourseRepository: AccountCourseRepository
+    private val accountCourseRepository: AccountCourseRepository,
+    private val accountCourseTestRepository: AccountCourseTestRepository
 ): TestService {
 
     override fun saveTest(test: Test): Test =
@@ -28,6 +31,9 @@ class TestServiceImpl(
     override fun findUnresolvedTestsByAccountId(accountId: Long): Test =
         testRepository.findByAccount_AccountIdAndIsCompleted(accountId, YesNo.NO)
 
+    override fun findByTestId(accountId: Long): Test =
+        testRepository.findByTestId(accountId)
+
     override fun getTestsRelatedToCourse(courseId: Long): List<CourseTestsResponse> =
         testRepository.findAllByCourse_CourseId(courseId).map {
             it.toCourseTestsResponse()
@@ -37,12 +43,21 @@ class TestServiceImpl(
         courseId: Long,
         accountId: Long
     ): List<CourseAccountTestsResponse> {
-        val foundAccountCourses = accountCourseRepository.findAllByAccount_AccountIdAndStatusAndCourse_CourseId(accountId, AccountCourseStatus.ACCEPTED, courseId)
+        //val foundAccountCourses = accountCourseRepository.findAllByAccount_AccountIdAndStatusAndCourse_CourseId(accountId, AccountCourseStatus.ACCEPTED, courseId)
 
+        val foundAccountCourses = accountCourseTestRepository.findByAccount_AccountIdAndTest_Course_CourseIdAndIsCompleted(accountId, courseId, YesNo.NO)
         return foundAccountCourses.map {
             it.toCourseAccountTestsResponse()
         }
     }
+
+    private fun AccountCourseTest.toCourseAccountTestsResponse(): CourseAccountTestsResponse =
+        CourseAccountTestsResponse(
+            courseId = this.test!!.course!!.courseId,
+            tests = this.test.course!!.tests.map {
+                it.toCourseTestResponse()
+            }
+        )
 
     private fun Test.toCourseTestsResponse(): CourseTestsResponse =
         CourseTestsResponse(

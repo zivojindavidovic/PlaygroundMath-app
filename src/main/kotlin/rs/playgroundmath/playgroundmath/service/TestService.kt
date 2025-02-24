@@ -15,4 +15,6 @@ interface TestService {
     fun getTestsRelatedToCourse(courseId: Long): List<CourseTestsResponse>
 
     fun getUnresolvedTestsRelatedToCourseAndAccount(courseId: Long, accountId: Long): List<CourseAccountTestsResponse>
+
+    fun findByTestId(accountId: Long): Test
 }

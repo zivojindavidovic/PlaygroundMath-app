@@ -3,11 +3,13 @@ package rs.playgroundmath.playgroundmath.service
 import org.springframework.stereotype.Service
 import rs.playgroundmath.playgroundmath.enums.YesNo
 import rs.playgroundmath.playgroundmath.exceptions.TaskUserHasUnresolvedException
+import rs.playgroundmath.playgroundmath.model.Account
 import rs.playgroundmath.playgroundmath.model.Task
 import rs.playgroundmath.playgroundmath.model.Test
 import rs.playgroundmath.playgroundmath.payload.request.GenerateTasksRequest
 import rs.playgroundmath.playgroundmath.payload.request.SolveTestRequest
 import rs.playgroundmath.playgroundmath.payload.response.*
+import rs.playgroundmath.playgroundmath.repository.AccountCourseTestRepository
 import rs.playgroundmath.playgroundmath.repository.TaskRepository
 import kotlin.math.floor
 import kotlin.random.Random
@@ -17,7 +19,8 @@ class TaskServiceImpl(
     private val taskRepository: TaskRepository,
     private val accountService: AccountService,
     private val courseService: CourseService,
-    private val testService: TestService
+    private val testService: TestService,
+    private val accountCourseTestRepository: AccountCourseTestRepository
 ): TaskService {
 
     override fun generateTasks(generateTasksRequest: GenerateTasksRequest): TaskGenerateResponse {
@@ -66,24 +69,21 @@ class TaskServiceImpl(
     }
 
     override fun solveTest(solveTestRequest: SolveTestRequest): SolveTestResponse {
-        var points = 0
+        var unresolvedTest: Test? = null
 
-        val unresolvedTest = testService.findUnresolvedTestsByAccountId(solveTestRequest.accountId)
-        val tasks = taskRepository.findAllByTest(unresolvedTest)
-
-        tasks.forEach { task ->
-            val currentTaskId = task.taskId
-            val userAnswer = solveTestRequest.testAnswers.firstNotNullOfOrNull { it[currentTaskId] }
-
-            if (userAnswer!!.toLong() == task.result.toLong()) {
-                points += task.points
-            }
+        unresolvedTest = if (solveTestRequest.testId != null) {
+            testService.findByTestId(solveTestRequest.testId)
+        } else {
+            testService.findUnresolvedTestsByAccountId(solveTestRequest.accountId)
         }
 
-        val account = accountService.findByAccountId(solveTestRequest.accountId)
-        val updatedAccount = account.copy(points = account.points + points)
+        val tasks = taskRepository.findAllByTest(unresolvedTest)
 
-        accountService.saveAccount(updatedAccount)
+        if (unresolvedTest.course != null) {
+            return solveCourseTest(solveTestRequest, unresolvedTest, tasks)
+        }
+
+        val (points, updatedAccount) = computePointsAndUpdateAccount(solveTestRequest, tasks)
 
         val updatedTest = unresolvedTest.copy(isCompleted = YesNo.YES)
         testService.saveTest(updatedTest)
@@ -93,6 +93,55 @@ class TaskServiceImpl(
             totalPoints = updatedAccount.points
         )
     }
+
+    private fun solveCourseTest(
+        solveTestRequest: SolveTestRequest,
+        unresolvedTest: Test,
+        tasks: List<Task>
+    ): SolveTestResponse {
+        val (points, updatedAccount) = computePointsAndUpdateAccount(solveTestRequest, tasks)
+
+        val accountCourseTest = accountCourseTestRepository
+            .findByAccount_AccountIdAndTest_TestId(
+                solveTestRequest.accountId,
+                unresolvedTest.testId
+            )
+
+        val updatedAccountCourseTest = accountCourseTest.copy(
+            wonPoints = points,
+            passed = YesNo.YES,
+            isCompleted = YesNo.YES
+        )
+
+        accountCourseTestRepository.save(updatedAccountCourseTest)
+
+        return SolveTestResponse(
+            pointsFromTest = points.toLong(),
+            totalPoints = updatedAccount.points
+        )
+    }
+
+    private fun computePointsAndUpdateAccount(
+        solveTestRequest: SolveTestRequest,
+        tasks: List<Task>
+    ): Pair<Int, Account> {
+        var points = 0
+
+        tasks.forEach { task ->
+            val currentTaskId = task.taskId
+            val userAnswer = solveTestRequest.testAnswers.firstNotNullOfOrNull { it[currentTaskId] }
+            if (userAnswer!!.toLong() == task.result.toLong()) {
+                points += task.points
+            }
+        }
+
+        val account = accountService.findByAccountId(solveTestRequest.accountId)
+        val updatedAccount = account.copy(points = account.points + points)
+        accountService.saveAccount(updatedAccount)
+
+        return points to updatedAccount
+    }
+
 
     private fun generatePdfTasks(numberOneFrom: Long, numberOneTo: Long, numberTwoFrom: Long, numberTwoTo: Long, operations: MutableList<String>, request: GenerateTasksRequest): TaskGenerateResponse {
         val tasks = mutableListOf<String>()
