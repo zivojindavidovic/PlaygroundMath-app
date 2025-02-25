@@ -1,9 +1,7 @@
 package rs.playgroundmath.playgroundmath.service
 
 import org.springframework.stereotype.Service
-import rs.playgroundmath.playgroundmath.enums.AccountCourseStatus
 import rs.playgroundmath.playgroundmath.enums.YesNo
-import rs.playgroundmath.playgroundmath.model.AccountCourse
 import rs.playgroundmath.playgroundmath.model.AccountCourseTest
 import rs.playgroundmath.playgroundmath.model.Task
 import rs.playgroundmath.playgroundmath.model.Test
@@ -11,14 +9,12 @@ import rs.playgroundmath.playgroundmath.payload.response.CourseAccountTestsRespo
 import rs.playgroundmath.playgroundmath.payload.response.CourseTaskResponse
 import rs.playgroundmath.playgroundmath.payload.response.CourseTestResponse
 import rs.playgroundmath.playgroundmath.payload.response.CourseTestsResponse
-import rs.playgroundmath.playgroundmath.repository.AccountCourseRepository
 import rs.playgroundmath.playgroundmath.repository.AccountCourseTestRepository
 import rs.playgroundmath.playgroundmath.repository.TestRepository
 
 @Service
 class TestServiceImpl(
     private val testRepository: TestRepository,
-    private val accountCourseRepository: AccountCourseRepository,
     private val accountCourseTestRepository: AccountCourseTestRepository
 ): TestService {
 
@@ -43,9 +39,8 @@ class TestServiceImpl(
         courseId: Long,
         accountId: Long
     ): List<CourseAccountTestsResponse> {
-        //val foundAccountCourses = accountCourseRepository.findAllByAccount_AccountIdAndStatusAndCourse_CourseId(accountId, AccountCourseStatus.ACCEPTED, courseId)
-
         val foundAccountCourses = accountCourseTestRepository.findByAccount_AccountIdAndTest_Course_CourseIdAndIsCompleted(accountId, courseId, YesNo.NO)
+
         return foundAccountCourses.map {
             it.toCourseAccountTestsResponse()
         }
@@ -63,14 +58,6 @@ class TestServiceImpl(
         CourseTestsResponse(
             testId = this.testId,
             courseId = this.course?.courseId!!
-        )
-
-    private fun AccountCourse.toCourseAccountTestsResponse(): CourseAccountTestsResponse =
-        CourseAccountTestsResponse(
-            courseId = this.course!!.courseId,
-            tests = this.course.tests.map {
-                it.toCourseTestResponse()
-            }
         )
 
     private fun Test.toCourseTestResponse(): CourseTestResponse =
