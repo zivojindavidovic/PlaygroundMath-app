@@ -26,6 +26,7 @@ class UserServiceImpl(
     private val accountCourseRepository: AccountCourseRepository,
     private val testRepository: TestRepository,
     private val accountCourseTestRepository: AccountCourseTestRepository,
+    private val accountTaskRepository: AccountTaskRepository,
 ): UserService {
     override fun registerUser(userRegisterRequest: UserRegisterRequest): UserRegisterResponse {
         val foundUser = userRepository.findByEmail(userRegisterRequest.email)
@@ -157,5 +158,33 @@ class UserServiceImpl(
         }
 
         return UserAccountCoursesResponse(accounts = accountsResponse)
+    }
+
+    override fun getUserAccountTests(accountId: Long, courseId: Long): AccountTestsResponse {
+        val accountTasks = accountTaskRepository.findAllByAccount_AccountIdAndTask_Test_Course_CourseId(accountId, courseId)
+
+        val groupedByTest = accountTasks.groupBy { it.task!!.test!!.testId }
+
+        val testsResponse = groupedByTest.map { (testId, accountTasksList) ->
+            val tasks = accountTasksList.map { task ->
+                val answer = task.answer ?: ""
+
+                TaskResponse(
+                    taskId = task.task!!.taskId,
+                    task = task.task.firstNumber + " " + task.task.operation + " " + task.task.secondNumber + " = " + answer
+                )
+            }
+
+            val test = testRepository.findByTestId(testId)
+            val isCompleted = test.isCompleted == YesNo.YES
+
+            TestResponse(
+                testId = testId,
+                isCompleted = isCompleted,
+                tasks = tasks
+            )
+        }
+
+        return AccountTestsResponse(tests = testsResponse)
     }
 }

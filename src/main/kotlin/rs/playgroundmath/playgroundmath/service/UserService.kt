@@ -3,10 +3,7 @@ package rs.playgroundmath.playgroundmath.service
 import rs.playgroundmath.playgroundmath.model.User
 import rs.playgroundmath.playgroundmath.payload.request.UserDeleteRequest
 import rs.playgroundmath.playgroundmath.payload.request.UserRegisterRequest
-import rs.playgroundmath.playgroundmath.payload.response.AdminUserResponse
-import rs.playgroundmath.playgroundmath.payload.response.UserAccountCoursesResponse
-import rs.playgroundmath.playgroundmath.payload.response.UserRegisterResponse
-import rs.playgroundmath.playgroundmath.payload.response.UserTeachersResponse
+import rs.playgroundmath.playgroundmath.payload.response.*
 
 interface UserService {
 
@@ -27,4 +24,6 @@ interface UserService {
     fun deleteUserByAdmin(userId: Long)
 
     fun getUserAccountCourses(userId: Long): UserAccountCoursesResponse
+
+    fun getUserAccountTests(accountId: Long, courseId: Long): AccountTestsResponse
 }
