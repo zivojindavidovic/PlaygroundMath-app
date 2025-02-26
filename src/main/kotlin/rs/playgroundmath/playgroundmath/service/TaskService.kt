@@ -1,6 +1,5 @@
 package rs.playgroundmath.playgroundmath.service
 
-import rs.playgroundmath.playgroundmath.model.Test
 import rs.playgroundmath.playgroundmath.payload.request.GenerateTasksRequest
 import rs.playgroundmath.playgroundmath.payload.request.SolveTestRequest
 import rs.playgroundmath.playgroundmath.payload.response.SolveTestResponse

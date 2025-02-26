@@ -8,4 +8,6 @@ import rs.playgroundmath.playgroundmath.model.AccountTaskId
 @Repository
 interface AccountTaskRepository: JpaRepository<AccountTask, AccountTaskId> {
     fun findAllByAccount_AccountIdAndTask_Test_Course_CourseId(accountId: Long, courseId: Long): List<AccountTask>
+
+    fun findAllByAccount_AccountIdAndTask_TaskId(accountId: Long, taskId: Long): AccountTask
 }

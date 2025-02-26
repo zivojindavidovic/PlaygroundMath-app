@@ -4,12 +4,14 @@ import org.springframework.stereotype.Service
 import rs.playgroundmath.playgroundmath.enums.YesNo
 import rs.playgroundmath.playgroundmath.exceptions.TaskUserHasUnresolvedException
 import rs.playgroundmath.playgroundmath.model.Account
+import rs.playgroundmath.playgroundmath.model.AccountTask
 import rs.playgroundmath.playgroundmath.model.Task
 import rs.playgroundmath.playgroundmath.model.Test
 import rs.playgroundmath.playgroundmath.payload.request.GenerateTasksRequest
 import rs.playgroundmath.playgroundmath.payload.request.SolveTestRequest
 import rs.playgroundmath.playgroundmath.payload.response.*
 import rs.playgroundmath.playgroundmath.repository.AccountCourseTestRepository
+import rs.playgroundmath.playgroundmath.repository.AccountTaskRepository
 import rs.playgroundmath.playgroundmath.repository.TaskRepository
 import kotlin.math.floor
 import kotlin.random.Random
@@ -20,7 +22,8 @@ class TaskServiceImpl(
     private val accountService: AccountService,
     private val courseService: CourseService,
     private val testService: TestService,
-    private val accountCourseTestRepository: AccountCourseTestRepository
+    private val accountCourseTestRepository: AccountCourseTestRepository,
+    private val accountTaskRepository: AccountTaskRepository
 ): TaskService {
 
     override fun generateTasks(generateTasksRequest: GenerateTasksRequest): TaskGenerateResponse {
@@ -128,6 +131,8 @@ class TaskServiceImpl(
     ): Pair<Int, Account> {
         var points = 0
 
+        val account = accountService.findByAccountId(solveTestRequest.accountId)
+
         tasks.forEach { task ->
             val currentTaskId = task.taskId
             val userAnswer = solveTestRequest.testAnswers.firstNotNullOfOrNull { it[currentTaskId] }
@@ -136,11 +141,16 @@ class TaskServiceImpl(
             }
 
             if (isCourseTest) {
-                //save result for test, task and accountId
+                val accountTask = accountTaskRepository.findAllByAccount_AccountIdAndTask_TaskId(accountId = account.accountId, taskId = task.taskId)
+
+                val updatedAccountTask = accountTask.copy(
+                    answer = userAnswer
+                )
+
+                accountTaskRepository.save(updatedAccountTask)
             }
         }
 
-        val account = accountService.findByAccountId(solveTestRequest.accountId)
         val updatedAccount = account.copy(points = account.points + points)
         accountService.saveAccount(updatedAccount)
 
