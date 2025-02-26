@@ -4,10 +4,7 @@ import org.springframework.stereotype.Service
 import rs.playgroundmath.playgroundmath.enums.AccountCourseStatus
 import rs.playgroundmath.playgroundmath.enums.YesNo
 import rs.playgroundmath.playgroundmath.exceptions.TaskUserHasUnresolvedException
-import rs.playgroundmath.playgroundmath.model.Account
-import rs.playgroundmath.playgroundmath.model.AccountTask
-import rs.playgroundmath.playgroundmath.model.Task
-import rs.playgroundmath.playgroundmath.model.Test
+import rs.playgroundmath.playgroundmath.model.*
 import rs.playgroundmath.playgroundmath.payload.request.GenerateTasksRequest
 import rs.playgroundmath.playgroundmath.payload.request.SolveTestRequest
 import rs.playgroundmath.playgroundmath.payload.response.*
@@ -178,6 +175,7 @@ class TaskServiceImpl(
 
     private fun generateOnlineTasks(numberOneFrom: Long, numberOneTo: Long, numberTwoFrom: Long, numberTwoTo: Long, operations: MutableList<String>, accountId: Long?, courseId: Long?, request: GenerateTasksRequest): TaskGenerateResponse {
         var test: Test? = null
+        var account: Account? = null
 
         if (accountId != null) {
             val unresolvedTasks = testService.countUnresolvedTestsByAccountId(accountId)
@@ -194,6 +192,7 @@ class TaskServiceImpl(
             test = testService.saveTest(Test(course = course))
         }
 
+        var possiblePoints = 0
         for(i in 1..20) {
             val taskInformation = generateRuleBasedTasks(numberOneFrom, numberOneTo, numberTwoFrom, numberTwoTo, operations, request)
 
@@ -205,6 +204,8 @@ class TaskServiceImpl(
                 else -> 1
             }
 
+            possiblePoints += points
+
             val task = Task(firstNumber = taskInformation["firstNumber"].toString(), secondNumber = taskInformation["secondNumber"].toString(), operation = taskInformation["operation"].toString(), result = taskInformation["result"].toString(), points = points, test = test)
 
             taskRepository.save(task)
@@ -213,7 +214,7 @@ class TaskServiceImpl(
                 val accountCourses = accountCourseRepository.findAllByCourse_CourseIdAndStatus(courseId, AccountCourseStatus.ACCEPTED)
 
                 accountCourses.forEach { accountCourse ->
-                    val account = accountCourse.account
+                    account = accountCourse.account
 
                     val accountTask = AccountTask(
                         account = account,
@@ -225,6 +226,10 @@ class TaskServiceImpl(
                     accountTaskRepository.save(accountTask)
                 }
             }
+        }
+
+        if (courseId != null) {
+            accountCourseTestRepository.save(AccountCourseTest(account = account, test = test, possiblePoints = possiblePoints, wonPoints = 0, passed = YesNo.NO, isCompleted = YesNo.NO))
         }
 
         return TaskGenerateResponse(type = "online")
