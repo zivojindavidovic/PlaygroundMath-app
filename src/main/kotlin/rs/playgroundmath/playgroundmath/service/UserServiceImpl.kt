@@ -27,6 +27,8 @@ class UserServiceImpl(
     private val testRepository: TestRepository,
     private val accountCourseTestRepository: AccountCourseTestRepository,
     private val accountTaskRepository: AccountTaskRepository,
+    private val courseRepository: CourseRepository,
+    private val accountRepository: AccountRepository,
 ): UserService {
     override fun registerUser(userRegisterRequest: UserRegisterRequest): UserRegisterResponse {
         val foundUser = userRepository.findByEmail(userRegisterRequest.email)
@@ -186,5 +188,43 @@ class UserServiceImpl(
         }
 
         return AccountTestsResponse(tests = testsResponse)
+    }
+
+    override fun getTeacherCourseInformation(teacherId: Long, courseId: Long): TeacherCourseInformationResponse {
+        val accountCourse = accountCourseRepository.findAllByCourse_CourseIdAndStatus(courseId, AccountCourseStatus.ACCEPTED)
+        val totalTests = testRepository.countTestByCourse_CourseId(courseId)
+
+        val groupedByAccount = accountCourse.groupBy { it.account!!.accountId }
+
+        val teacherAccountResponse = groupedByAccount.map { (accountId, accountCourseList) ->
+            val accountSolvedTests = accountCourseTestRepository.countAllByAccount_AccountIdAndTest_Course_CourseIdAndIsCompleted(accountId, courseId, YesNo.YES)
+            val account = accountRepository.findByAccountId(accountId)
+            TeacherCourseInformationAccountsResponse(
+                accountId = accountId,
+                username = account.username,
+                solvedTest = accountSolvedTests
+            )
+        }
+
+        val courseTests = testRepository.findAllByCourse_CourseId(courseId)
+
+        val teacherTestsResponse = courseTests.map { test ->
+            TeacherCourseInformationTestsResponse(
+                testId = test.testId,
+                tasks = test.tasks!!.map { task ->
+                    TaskResponse(
+                        taskId = task.taskId,
+                        task = task.firstNumber + " " + task.operation + " " + task.secondNumber + " = " + task.result
+                    )
+                }
+            )
+        }
+
+        return TeacherCourseInformationResponse(
+            courseId = courseId,
+            totalTests = totalTests,
+            accounts = teacherAccountResponse,
+            tests = teacherTestsResponse
+        )
     }
 }
