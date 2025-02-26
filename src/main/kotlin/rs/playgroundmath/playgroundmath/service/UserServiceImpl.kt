@@ -3,6 +3,7 @@ package rs.playgroundmath.playgroundmath.service
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+import rs.playgroundmath.playgroundmath.enums.AccountCourseStatus
 import rs.playgroundmath.playgroundmath.exceptions.UserAlreadyExistsException
 import rs.playgroundmath.playgroundmath.exceptions.UserNotFoundException
 import rs.playgroundmath.playgroundmath.enums.RoleType
@@ -130,37 +131,31 @@ class UserServiceImpl(
 
     private fun encoder(): PasswordEncoder = BCryptPasswordEncoder()
 
-    override fun getUserAccountCourses(userId: Long): List<UserAccountCoursesResponse> {
-        val accountCourses = accountCourseRepository.findAllByAccount_User_UserId(userId)
+    override fun getUserAccountCourses(userId: Long): UserAccountCoursesResponse {
+        val accountCourses = accountCourseRepository.findAllByAccount_User_UserIdAndAndStatus(userId, AccountCourseStatus.ACCEPTED)
 
-        return accountCourses.map { it ->
-            it.toUserAccountCoursesResponse()
+        val groupedByAccount = accountCourses.groupBy { it.account!!.accountId }
+
+        val accountsResponse = groupedByAccount.map { (accountId, accountCoursesList) ->
+            val courses = accountCoursesList.map { accountCourse ->
+                val course = accountCourse.course!!
+                val testsCountByCourseId = testRepository.countTestByCourse_CourseId(course.courseId)
+                val solvedTestsCountByAccountId =
+                    accountCourseTestRepository.countAllByAccount_AccountIdAndIsCompleted(accountId, YesNo.YES)
+
+                CoursesResponse(
+                    courseId = course.courseId,
+                    courseTestsCount = testsCountByCourseId,
+                    accountSolvedTestsCount = solvedTestsCountByAccountId
+                )
+            }
+
+            AccountCoursesResponse(
+                accountId = accountId,
+                courses = courses
+            )
         }
-    }
 
-    private fun AccountCourse.toUserAccountCoursesResponse(): UserAccountCoursesResponse {
-        return UserAccountCoursesResponse(
-            accounts = this.toAccountCoursesResponse()
-        )
-    }
-
-    private fun AccountCourse.toAccountCoursesResponse(): AccountCoursesResponse {
-        val accountId = this.account!!.accountId
-
-        return AccountCoursesResponse(
-            accountId = accountId,
-            courses = this.course!!.toCoursesResponse(accountId),
-        )
-    }
-
-    private fun Course.toCoursesResponse(accountId: Long): CoursesResponse {
-        val testsCountByCourseId = testRepository.countTestByCourse_CourseId(this.courseId)
-        val solvedTestsCountByAccountId = accountCourseTestRepository.countAllByAccount_AccountIdAndIsCompleted(accountId, YesNo.YES)
-
-        return CoursesResponse(
-            courseId = this.courseId,
-            courseTestsCount = testsCountByCourseId,
-            accountSolvedTestsCount = solvedTestsCountByAccountId
-        )
+        return UserAccountCoursesResponse(accounts = accountsResponse)
     }
 }

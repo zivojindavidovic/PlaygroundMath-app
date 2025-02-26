@@ -26,5 +26,5 @@ interface UserService {
 
     fun deleteUserByAdmin(userId: Long)
 
-    fun getUserAccountCourses(userId: Long): List<UserAccountCoursesResponse>
+    fun getUserAccountCourses(userId: Long): UserAccountCoursesResponse
 }

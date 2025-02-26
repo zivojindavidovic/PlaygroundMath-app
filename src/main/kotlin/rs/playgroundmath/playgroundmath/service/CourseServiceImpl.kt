@@ -19,7 +19,8 @@ class CourseServiceImpl(
     private val accountCourseTestRepository: AccountCourseTestRepository,
     private val taskRepository: TaskRepository,
     @Lazy private val userService: UserService,
-    @Lazy private val accountService: AccountService
+    @Lazy private val accountService: AccountService,
+    private val accountTaskRepository: AccountTaskRepository
 ): CourseService {
 
     override fun createCourse(courseCreateRequest: CourseCreateRequest): CourseResponse {
@@ -65,7 +66,8 @@ class CourseServiceImpl(
 
     override fun resolveApplication(resolveApplicationRequest: ResolveApplicationRequest) {
         val foundAccountCourse = accountCourseRepository.findByCourse_CourseIdAndAccount_AccountId(resolveApplicationRequest.courseId, resolveApplicationRequest.accountId)
-            if (resolveApplicationRequest.decision) {
+
+        if (resolveApplicationRequest.decision) {
             val updatedAccountCourse = foundAccountCourse.copy(
                 status = AccountCourseStatus.ACCEPTED
             )
@@ -78,6 +80,20 @@ class CourseServiceImpl(
                 val possiblePoints = taskRepository.sumPointsByTestId(currentTestId)
 
                 accountCourseTestRepository.save(AccountCourseTest(account = account, test = test, possiblePoints = possiblePoints.toInt()))
+
+                val tasks = test.tasks
+
+                tasks!!.forEach { task ->
+
+                    accountTaskRepository.save(
+                        AccountTask(
+                            account = account,
+                            task = task,
+                            result = task.result,
+                            answer = null
+                        )
+                    )
+                }
             }
 
             accountCourseRepository.save(updatedAccountCourse)

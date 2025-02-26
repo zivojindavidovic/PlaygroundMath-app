@@ -54,6 +54,6 @@ class UserController(
     }
 
     @GetMapping("/accounts/courses")
-    fun getUserAccountCourses(@RequestParam userId: Long): List<UserAccountCoursesResponse> =
+    fun getUserAccountCourses(@RequestParam userId: Long): UserAccountCoursesResponse =
         userService.getUserAccountCourses(userId)
 }
