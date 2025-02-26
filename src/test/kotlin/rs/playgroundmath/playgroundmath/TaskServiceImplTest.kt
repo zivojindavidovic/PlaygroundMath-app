@@ -12,7 +12,7 @@ import kotlin.test.assertTrue
 @SpringBootTest
 class TaskServiceImplTest {
 
-    private val taskService = TaskServiceImpl(mockk(), mockk(), mockk(), mockk(), mockk(), mockk())
+    private val taskService = TaskServiceImpl(mockk(), mockk(), mockk(), mockk(), mockk(), mockk(), mockk())
 
 
     @RepeatedTest(100)

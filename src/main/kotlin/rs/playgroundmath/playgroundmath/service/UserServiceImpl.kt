@@ -175,8 +175,8 @@ class UserServiceImpl(
                 )
             }
 
-            val test = testRepository.findByTestId(testId)
-            val isCompleted = test.isCompleted == YesNo.YES
+            val accountCourseTest = accountCourseTestRepository.findByAccount_AccountIdAndTest_TestId(accountId, testId)
+            val isCompleted = accountCourseTest.isCompleted == YesNo.YES
 
             TestResponse(
                 testId = testId,
