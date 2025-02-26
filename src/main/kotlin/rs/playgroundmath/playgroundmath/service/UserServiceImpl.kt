@@ -27,7 +27,6 @@ class UserServiceImpl(
     private val testRepository: TestRepository,
     private val accountCourseTestRepository: AccountCourseTestRepository,
     private val accountTaskRepository: AccountTaskRepository,
-    private val courseRepository: CourseRepository,
     private val accountRepository: AccountRepository,
 ): UserService {
     override fun registerUser(userRegisterRequest: UserRegisterRequest): UserRegisterResponse {
@@ -37,7 +36,7 @@ class UserServiceImpl(
             throw UserAlreadyExistsException("Korisnik sa e-adresom je već registrovan")
         }
 
-        var user = User(email = userRegisterRequest.email, password = encoder().encode(userRegisterRequest.password))
+        var user = User(email = userRegisterRequest.email, password = encoder().encode(userRegisterRequest.password), firstName = userRegisterRequest.firstName, lastName = userRegisterRequest.lastName)
 
         if (userRegisterRequest.accountType == RoleType.TEACHER) {
            user = user.copy(role = Role(roleId = 3, RoleType.TEACHER))

@@ -22,6 +22,12 @@ data class User(
     @Column(name = "status", nullable = false, columnDefinition = "ENUM('ACTIVE', 'PENDING', 'SUSPENDED', 'DELETED')")
     val status: Status = Status.PENDING,
 
+    @Column(name = "first_name", nullable = false, length = 255)
+    val firstName: String = "",
+
+    @Column(name = "last_name", nullable = false, length = 255)
+    val lastName: String = "",
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id", nullable = false)
     val role: Role = Role(roleId = 2, roleType = RoleType.PARENT),
