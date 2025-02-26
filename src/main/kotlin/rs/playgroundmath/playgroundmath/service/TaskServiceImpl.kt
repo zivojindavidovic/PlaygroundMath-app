@@ -4,7 +4,6 @@ import org.springframework.stereotype.Service
 import rs.playgroundmath.playgroundmath.enums.YesNo
 import rs.playgroundmath.playgroundmath.exceptions.TaskUserHasUnresolvedException
 import rs.playgroundmath.playgroundmath.model.Account
-import rs.playgroundmath.playgroundmath.model.AccountTask
 import rs.playgroundmath.playgroundmath.model.Task
 import rs.playgroundmath.playgroundmath.model.Test
 import rs.playgroundmath.playgroundmath.payload.request.GenerateTasksRequest
