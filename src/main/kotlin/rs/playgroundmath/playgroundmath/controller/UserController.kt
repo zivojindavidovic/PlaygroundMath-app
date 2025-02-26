@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*
 import rs.playgroundmath.playgroundmath.payload.request.UserDeleteRequest
 import rs.playgroundmath.playgroundmath.payload.request.UserRegisterRequest
 import rs.playgroundmath.playgroundmath.payload.request.ApiResponse
+import rs.playgroundmath.playgroundmath.payload.response.UserAccountCoursesResponse
 import rs.playgroundmath.playgroundmath.payload.response.UserRegisterResponse
 import rs.playgroundmath.playgroundmath.payload.response.UserTeachersResponse
 import rs.playgroundmath.playgroundmath.service.UserService
@@ -51,4 +52,8 @@ class UserController(
     fun getAllTeachers(): List<UserTeachersResponse> {
         return userService.getAllTeachers()
     }
+
+    @GetMapping("/accounts/courses")
+    fun getUserAccountCourses(@RequestParam userId: Long): List<UserAccountCoursesResponse> =
+        userService.getUserAccountCourses(userId)
 }

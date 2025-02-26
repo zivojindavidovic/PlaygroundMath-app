@@ -99,7 +99,7 @@ class TaskServiceImpl(
         unresolvedTest: Test,
         tasks: List<Task>
     ): SolveTestResponse {
-        val (points, updatedAccount) = computePointsAndUpdateAccount(solveTestRequest, tasks)
+        val (points, updatedAccount) = computePointsAndUpdateAccount(solveTestRequest, tasks, true)
 
         val accountCourseTest = accountCourseTestRepository
             .findByAccount_AccountIdAndTest_TestId(
@@ -123,7 +123,8 @@ class TaskServiceImpl(
 
     private fun computePointsAndUpdateAccount(
         solveTestRequest: SolveTestRequest,
-        tasks: List<Task>
+        tasks: List<Task>,
+        isCourseTest: Boolean = false
     ): Pair<Int, Account> {
         var points = 0
 
@@ -132,6 +133,10 @@ class TaskServiceImpl(
             val userAnswer = solveTestRequest.testAnswers.firstNotNullOfOrNull { it[currentTaskId] }
             if (userAnswer!!.toLong() == task.result.toLong()) {
                 points += task.points
+            }
+
+            if (isCourseTest) {
+                //save result for test, task and accountId
             }
         }
 

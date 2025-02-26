@@ -15,4 +15,6 @@ interface TestRepository: JpaRepository<Test, Long> {
     fun findAllByCourse_CourseId(courseId: Long): List<Test>
 
     fun findByTestId(testId: Long): Test
+
+    fun countTestByCourse_CourseId(courseId: Long): Long
 }

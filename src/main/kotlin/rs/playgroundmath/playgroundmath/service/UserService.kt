@@ -4,6 +4,7 @@ import rs.playgroundmath.playgroundmath.model.User
 import rs.playgroundmath.playgroundmath.payload.request.UserDeleteRequest
 import rs.playgroundmath.playgroundmath.payload.request.UserRegisterRequest
 import rs.playgroundmath.playgroundmath.payload.response.AdminUserResponse
+import rs.playgroundmath.playgroundmath.payload.response.UserAccountCoursesResponse
 import rs.playgroundmath.playgroundmath.payload.response.UserRegisterResponse
 import rs.playgroundmath.playgroundmath.payload.response.UserTeachersResponse
 
@@ -24,4 +25,6 @@ interface UserService {
     fun getAll(): List<AdminUserResponse>
 
     fun deleteUserByAdmin(userId: Long)
+
+    fun getUserAccountCourses(userId: Long): List<UserAccountCoursesResponse>
 }

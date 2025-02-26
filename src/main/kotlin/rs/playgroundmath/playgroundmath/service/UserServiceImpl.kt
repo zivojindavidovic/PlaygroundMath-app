@@ -7,12 +7,13 @@ import rs.playgroundmath.playgroundmath.exceptions.UserAlreadyExistsException
 import rs.playgroundmath.playgroundmath.exceptions.UserNotFoundException
 import rs.playgroundmath.playgroundmath.enums.RoleType
 import rs.playgroundmath.playgroundmath.enums.Status
+import rs.playgroundmath.playgroundmath.enums.YesNo
 import rs.playgroundmath.playgroundmath.exceptions.DeleteUserPasswordDoNotMatchException
 import rs.playgroundmath.playgroundmath.model.*
 import rs.playgroundmath.playgroundmath.payload.request.UserDeleteRequest
 import rs.playgroundmath.playgroundmath.payload.request.UserRegisterRequest
 import rs.playgroundmath.playgroundmath.payload.response.*
-import rs.playgroundmath.playgroundmath.repository.UserRepository
+import rs.playgroundmath.playgroundmath.repository.*
 import java.time.LocalDateTime
 
 @Service
@@ -20,7 +21,10 @@ class UserServiceImpl(
     private val userRepository: UserRepository,
     private val roleService: RoleService,
     private val communicationService: CommunicationService,
-    private val confirmationTokenService: ConfirmationTokenService
+    private val confirmationTokenService: ConfirmationTokenService,
+    private val accountCourseRepository: AccountCourseRepository,
+    private val testRepository: TestRepository,
+    private val accountCourseTestRepository: AccountCourseTestRepository,
 ): UserService {
     override fun registerUser(userRegisterRequest: UserRegisterRequest): UserRegisterResponse {
         val foundUser = userRepository.findByEmail(userRegisterRequest.email)
@@ -125,4 +129,38 @@ class UserServiceImpl(
     }
 
     private fun encoder(): PasswordEncoder = BCryptPasswordEncoder()
+
+    override fun getUserAccountCourses(userId: Long): List<UserAccountCoursesResponse> {
+        val accountCourses = accountCourseRepository.findAllByAccount_User_UserId(userId)
+
+        return accountCourses.map { it ->
+            it.toUserAccountCoursesResponse()
+        }
+    }
+
+    private fun AccountCourse.toUserAccountCoursesResponse(): UserAccountCoursesResponse {
+        return UserAccountCoursesResponse(
+            accounts = this.toAccountCoursesResponse()
+        )
+    }
+
+    private fun AccountCourse.toAccountCoursesResponse(): AccountCoursesResponse {
+        val accountId = this.account!!.accountId
+
+        return AccountCoursesResponse(
+            accountId = accountId,
+            courses = this.course!!.toCoursesResponse(accountId),
+        )
+    }
+
+    private fun Course.toCoursesResponse(accountId: Long): CoursesResponse {
+        val testsCountByCourseId = testRepository.countTestByCourse_CourseId(this.courseId)
+        val solvedTestsCountByAccountId = accountCourseTestRepository.countAllByAccount_AccountIdAndIsCompleted(accountId, YesNo.YES)
+
+        return CoursesResponse(
+            courseId = this.courseId,
+            courseTestsCount = testsCountByCourseId,
+            accountSolvedTestsCount = solvedTestsCountByAccountId
+        )
+    }
 }

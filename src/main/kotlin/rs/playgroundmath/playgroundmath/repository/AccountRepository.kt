@@ -14,4 +14,6 @@ interface AccountRepository: JpaRepository<Account, Long> {
     fun findAllByUser(user: User): List<Account>
 
     fun findAllByOrderByPointsDesc(): List<Account>
+
+    fun findByUser_UserId(userId: Long): List<Account>
 }
