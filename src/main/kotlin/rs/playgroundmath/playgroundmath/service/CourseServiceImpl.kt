@@ -30,7 +30,9 @@ class CourseServiceImpl(
             Course(
                 dueDate = courseCreateRequest.dueDate,
                 age = courseCreateRequest.age,
-                user = user
+                user = user,
+                title = courseCreateRequest.title,
+                description = courseCreateRequest.description
             )
         ).toResponse()
     }

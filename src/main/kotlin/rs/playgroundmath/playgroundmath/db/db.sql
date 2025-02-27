@@ -9,6 +9,8 @@ CREATE TABLE `user` (
     `password` VARCHAR(255) NOT NULL,
     `status` ENUM('ACTIVE', 'PENDING', 'SUSPENDED', 'DELETED') NOT NULL DEFAULT 'PENDING',
     `role_id` BIGINT NOT NULL,
+    `first_name` VARCHAR(255) NOT NULL,
+    `last_name` VARCHAR(255) NOT NULL,
     FOREIGN KEY (`role_id`) REFERENCES `role`(`role_id`) ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
@@ -17,6 +19,8 @@ CREATE TABLE `course` (
     `age` INT NOT NULL,
     `due_date` DATETIME NULL,
     `user_id` BIGINT NULL,
+    `title` VARCHAR(255) NOT NULL,
+    `description` VARCHAR(255) NULL,
     FOREIGN KEY (`user_id`) REFERENCES `user`(`user_id`) ON DELETE SET NULL ON UPDATE CASCADE
 );
 
@@ -77,4 +81,16 @@ CREATE TABLE confirmation_token (
     created_at DATETIME NOT NULL,
     expires_at DATETIME NOT NULL,
     confirmed_at DATETIME NULL
+);
+
+CREATE TABLE account_task (
+    account_id BIGINT NOT NULL,
+    task_id    BIGINT NOT NULL,
+    result     VARCHAR(255),
+    answer     VARCHAR(255),
+    PRIMARY KEY (account_id, task_id),
+    CONSTRAINT fk_account_task_account
+      FOREIGN KEY (account_id) REFERENCES account (account_id),
+    CONSTRAINT fk_account_task_task
+      FOREIGN KEY (task_id) REFERENCES task (task_id)
 );

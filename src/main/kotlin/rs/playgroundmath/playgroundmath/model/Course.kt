@@ -18,6 +18,12 @@ data class Course(
     @Column(name = "due_date", nullable = true)
     val dueDate: LocalDateTime? = null,
 
+    @Column(name = "title", nullable = false)
+    val title: String = "",
+
+    @Column(name = "description", nullable = false)
+    val description: String = "",
+
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = true)
     val user: User? = null,

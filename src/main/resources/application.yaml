@@ -8,6 +8,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     database-platform: org.hibernate.dialect.MySQL8Dialect
+#    show-sql: true  # <-- This prints out the SQL
   mail:
     host: smtp.gmail.com
     port: 587
@@ -25,3 +26,5 @@ jwt:
 logging:
   level:
     org.springframework.security: DEBUG
+   # org.hibernate.SQL: DEBUG  # <-- This prints the actual SQL statements
+   # org.hibernate.type.descriptor.sql.BasicBinder: TRACE  # <-- This prints parameter bindings

@@ -16,5 +16,13 @@ data class CourseCreateRequest(
     val age: Long,
 
     @field:NotNull(message = "Moraš uneti datum kada se kurs završava kako bi kreirao kurs")
-    val dueDate: LocalDateTime
+    val dueDate: LocalDateTime,
+
+    @field:NotBlank(message = "Moraš uneti naslov kako bi kreirao kurs")
+    @field:Min(value = 3, message = "Naslov mora biti duži od 3 karaktera")
+    val title: String,
+
+    @field:NotBlank(message = "Moraš uneti opis kako bi kreirao kurs")
+    @field:Min(value = 3, message = "Opis mora biti duži od 3 karaktera")
+    val description: String
 )

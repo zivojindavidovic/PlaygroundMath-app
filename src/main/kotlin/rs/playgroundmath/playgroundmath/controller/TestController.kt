@@ -19,6 +19,6 @@ class TestController(
         testService.getTestsRelatedToCourse(courseId)
 
     @GetMapping("/unresolved")
-    fun getUnresolvedTestsRelatedToCourseAndAccount(@RequestParam courseId: Long, @RequestParam accountId: Long): List<CourseAccountTestsResponse> =
+    fun getUnresolvedTestsRelatedToCourseAndAccount(@RequestParam courseId: Long, @RequestParam accountId: Long): CourseAccountTestsResponse =
         testService.getUnresolvedTestsRelatedToCourseAndAccount(courseId, accountId)
 }

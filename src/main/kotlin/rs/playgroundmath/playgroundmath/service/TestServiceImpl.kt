@@ -38,13 +38,32 @@ class TestServiceImpl(
     override fun getUnresolvedTestsRelatedToCourseAndAccount(
         courseId: Long,
         accountId: Long
-    ): List<CourseAccountTestsResponse> {
-        val foundAccountCourses = accountCourseTestRepository.findByAccount_AccountIdAndTest_Course_CourseIdAndIsCompleted(accountId, courseId, YesNo.NO)
+    ): CourseAccountTestsResponse {
 
-        return foundAccountCourses.map {
-            it.toCourseAccountTestsResponse()
+        val accountTests = accountCourseTestRepository.findByAccount_AccountIdAndTest_Course_CourseIdAndIsCompleted(accountId, courseId, YesNo.NO)
+
+        val testResponses = accountTests.map { accountTest ->
+            val test = accountTest.test ?: return@map null
+            val tasks = test.tasks?.map { task ->
+                CourseTaskResponse(
+                    taskId = task.taskId,
+                    task = "${task.firstNumber} ${task.operation} ${task.secondNumber}"
+                )
+            }.orEmpty()
+
+            CourseTestResponse(
+                testId = test.testId,
+                tasks = tasks
+            )
         }
+            .distinctBy { it!!.testId }
+
+        return CourseAccountTestsResponse(
+            courseId = courseId,
+            tests = testResponses
+        )
     }
+
 
     private fun AccountCourseTest.toCourseAccountTestsResponse(): CourseAccountTestsResponse =
         CourseAccountTestsResponse(

@@ -143,7 +143,7 @@ class UserServiceImpl(
                 val course = accountCourse.course!!
                 val testsCountByCourseId = testRepository.countTestByCourse_CourseId(course.courseId)
                 val solvedTestsCountByAccountId =
-                    accountCourseTestRepository.countAllByAccount_AccountIdAndIsCompleted(accountId, YesNo.YES)
+                    accountCourseTestRepository.countAllByAccount_AccountIdAndTest_Course_CourseIdAndIsCompleted(accountId, course.courseId, YesNo.YES)
 
                 CoursesResponse(
                     courseId = course.courseId,
