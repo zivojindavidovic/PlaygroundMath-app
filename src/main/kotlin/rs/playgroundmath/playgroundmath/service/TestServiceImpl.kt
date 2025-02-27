@@ -11,6 +11,7 @@ import rs.playgroundmath.playgroundmath.payload.response.CourseTestResponse
 import rs.playgroundmath.playgroundmath.payload.response.CourseTestsResponse
 import rs.playgroundmath.playgroundmath.repository.AccountCourseTestRepository
 import rs.playgroundmath.playgroundmath.repository.TestRepository
+import java.time.LocalDateTime
 
 @Service
 class TestServiceImpl(
@@ -40,7 +41,7 @@ class TestServiceImpl(
         accountId: Long
     ): CourseAccountTestsResponse {
 
-        val accountTests = accountCourseTestRepository.findByAccount_AccountIdAndTest_Course_CourseIdAndIsCompleted(accountId, courseId, YesNo.NO)
+        val accountTests = accountCourseTestRepository.findByAccount_AccountIdAndTest_Course_CourseIdAndIsCompletedAndTest_Course_DueDateAfter(accountId, courseId, YesNo.NO, LocalDateTime.now())
 
         val testResponses = accountTests.map { accountTest ->
             val test = accountTest.test ?: return@map null

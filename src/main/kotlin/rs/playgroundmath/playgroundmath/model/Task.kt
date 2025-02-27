@@ -27,5 +27,12 @@ data class Task(
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "test_id", nullable = false)
-    val test: Test? = null
+    val test: Test? = null,
+
+    @OneToMany(
+        mappedBy = "task",
+        cascade = [CascadeType.ALL],
+        orphanRemoval = true
+    )
+    val accountTasks: List<AccountTask> = emptyList()
 )

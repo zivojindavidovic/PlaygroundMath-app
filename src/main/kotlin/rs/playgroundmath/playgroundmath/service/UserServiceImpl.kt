@@ -28,6 +28,7 @@ class UserServiceImpl(
     private val accountCourseTestRepository: AccountCourseTestRepository,
     private val accountTaskRepository: AccountTaskRepository,
     private val accountRepository: AccountRepository,
+    private val courseRepository: CourseRepository,
 ): UserService {
     override fun registerUser(userRegisterRequest: UserRegisterRequest): UserRegisterResponse {
         val foundUser = userRepository.findByEmail(userRegisterRequest.email)
@@ -117,12 +118,16 @@ class UserServiceImpl(
         userRepository.deleteById(userId)
     }
 
-    private fun User.toTeacherResponse(): UserTeachersResponse =
-        UserTeachersResponse(
-            teacherId = this.userId,
-            teacherEmail = this.email,
-            numberOfActiveCourses = 0
-        )
+    private fun User.toTeacherResponse(): UserTeachersResponse {
+        val activeCourses = courseRepository.countAllByUser_UserIdAndDueDateAfter(this.userId, LocalDateTime.now())
+
+        return UserTeachersResponse(
+                teacherId = this.userId,
+                teacherEmail = this.email,
+                numberOfActiveCourses = activeCourses.toInt()
+            )
+    }
+
 
     private fun User.toResponse(): UserRegisterResponse {
         return UserRegisterResponse(
@@ -224,6 +229,28 @@ class UserServiceImpl(
             totalTests = totalTests,
             accounts = teacherAccountResponse,
             tests = teacherTestsResponse
+        )
+    }
+
+    override fun getById(userId: Long): UserResponse {
+        val user = userRepository.findByUserId(userId) ?: throw UserNotFoundException("User with ID: $userId not found")
+
+        val accounts = user.accounts
+
+        val accountsResponse = accounts.map { account ->
+            AccountResponse(
+                accountId = account.accountId,
+                username = account.username,
+                points = account.points
+            )
+        }
+
+        return UserResponse(
+            id = user.userId,
+            firstName = user.firstName,
+            lastName = user.lastName,
+            email = user.email,
+            accounts = accountsResponse
         )
     }
 }

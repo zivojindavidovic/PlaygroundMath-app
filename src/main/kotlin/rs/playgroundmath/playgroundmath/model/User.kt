@@ -33,5 +33,8 @@ data class User(
     val role: Role = Role(roleId = 2, roleType = RoleType.PARENT),
 
     @OneToMany(mappedBy = "user", cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
-    val accounts: List<Account> = listOf()
+    val accounts: List<Account> = listOf(),
+
+    @OneToMany(mappedBy = "user", cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
+    val courses: List<Course> = listOf()
 )

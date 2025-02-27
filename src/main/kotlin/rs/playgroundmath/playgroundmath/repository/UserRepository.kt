@@ -2,6 +2,7 @@ package rs.playgroundmath.playgroundmath.repository
 
 import org.springframework.data.jpa.repository.JpaRepository
 import rs.playgroundmath.playgroundmath.enums.RoleType
+import rs.playgroundmath.playgroundmath.model.Role
 import rs.playgroundmath.playgroundmath.model.User
 
 interface UserRepository: JpaRepository<User, Long> {
@@ -14,4 +15,6 @@ interface UserRepository: JpaRepository<User, Long> {
     fun findByUserId(userId: Long): User?
 
     fun findAllByRole_RoleTypeNot(roleType: RoleType): List<User>
+
+    fun findAllByRole(role: Role): List<User>
 }

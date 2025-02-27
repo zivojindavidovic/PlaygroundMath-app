@@ -62,4 +62,8 @@ class UserController(
     @GetMapping("/teachers/{teacherId}/courses/{courseId}")
     fun getCourseInformation(@PathVariable teacherId: Long, @PathVariable courseId: Long): TeacherCourseInformationResponse =
         userService.getTeacherCourseInformation(teacherId, courseId)
+
+    @GetMapping
+    fun getById(@RequestParam("userId") userId: Long) =
+        userService.getById(userId)
 }

@@ -1,25 +1,22 @@
 package rs.playgroundmath.playgroundmath.controller
 
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.DeleteMapping
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import rs.playgroundmath.playgroundmath.payload.request.AdminUpdateAccountPointsRequest
 import rs.playgroundmath.playgroundmath.payload.request.ApiResponse
 import rs.playgroundmath.playgroundmath.payload.response.AccountResponse
+import rs.playgroundmath.playgroundmath.payload.response.AdminTeacherResponse
 import rs.playgroundmath.playgroundmath.payload.response.AdminUserResponse
 import rs.playgroundmath.playgroundmath.service.AccountService
+import rs.playgroundmath.playgroundmath.service.AdminService
 import rs.playgroundmath.playgroundmath.service.UserService
 
 @RestController
 @RequestMapping("/api/v1/admin")
 class AdminController(
     private val accountService: AccountService,
-    private val userService: UserService
+    private val userService: UserService,
+    private val adminService: AdminService
 ) {
 
     @GetMapping("/accounts")
@@ -70,4 +67,16 @@ class AdminController(
             )
         )
     }
+
+    @GetMapping("/teacher-courses")
+    fun getTeacherCourses(): List<AdminTeacherResponse> =
+        adminService.getTeacherInformation()
+
+    @DeleteMapping("/course/{courseId}")
+    fun deleteCourseByAdmin(@PathVariable courseId: Long): Boolean =
+        adminService.deleteCourseByAdmin(courseId)
+
+    @DeleteMapping("/test/{testId}")
+    fun deleteTestByAdmin(@PathVariable testId: Long): Boolean =
+        adminService.deleteTestByAdmin(testId)
 }

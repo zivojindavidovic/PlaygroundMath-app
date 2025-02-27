@@ -28,4 +28,6 @@ interface UserService {
     fun getUserAccountTests(accountId: Long, courseId: Long): AccountTestsResponse
 
     fun getTeacherCourseInformation(teacherId: Long, courseId: Long): TeacherCourseInformationResponse
+
+    fun getById(userId: Long): UserResponse
 }

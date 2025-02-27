@@ -10,6 +10,7 @@ import rs.playgroundmath.playgroundmath.payload.request.CourseCreateRequest
 import rs.playgroundmath.playgroundmath.payload.request.ResolveApplicationRequest
 import rs.playgroundmath.playgroundmath.payload.response.*
 import rs.playgroundmath.playgroundmath.repository.*
+import java.time.LocalDateTime
 
 @Service
 class CourseServiceImpl(
@@ -46,7 +47,7 @@ class CourseServiceImpl(
         courseRepository.findById(courseId).get().toResponse()
 
     override fun findCoursesRelatedToUserId(userId: Long): List<CourseResponse> {
-        return courseRepository.findAllByUser_UserId(userId).map {
+        return courseRepository.findAllByUser_UserIdAndDueDateAfter(userId, LocalDateTime.now()).map {
             it.toResponse()
         }
     }
