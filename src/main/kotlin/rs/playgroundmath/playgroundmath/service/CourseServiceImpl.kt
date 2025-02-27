@@ -138,7 +138,9 @@ class CourseServiceImpl(
         return CourseResponse(
             courseId = this.courseId,
             age = this.age,
-            dueDate = this.dueDate!!
+            dueDate = this.dueDate!!,
+            title = this.title,
+            description = this.description
         )
     }
 }
