@@ -3,8 +3,9 @@ package rs.playgroundmath.playgroundmath.controller
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import rs.playgroundmath.playgroundmath.payload.request.AdminUpdateAccountPointsRequest
+import rs.playgroundmath.playgroundmath.payload.request.AdminUpdateUserRequest
 import rs.playgroundmath.playgroundmath.payload.request.ApiResponse
-import rs.playgroundmath.playgroundmath.payload.response.AccountResponse
+import rs.playgroundmath.playgroundmath.payload.response.AdminAccountResponse
 import rs.playgroundmath.playgroundmath.payload.response.AdminTeacherResponse
 import rs.playgroundmath.playgroundmath.payload.response.AdminUserResponse
 import rs.playgroundmath.playgroundmath.service.AccountService
@@ -20,16 +21,29 @@ class AdminController(
 ) {
 
     @GetMapping("/accounts")
-    fun getAllAccount(): List<AccountResponse> =
+    fun getAllAccount(): List<AdminAccountResponse> =
         accountService.getAllAccounts()
 
     @GetMapping("/users")
     fun getAllUsers(): List<AdminUserResponse> =
         userService.getAll()
 
+    @PostMapping("/update-user")
+    fun updateUser(@RequestBody adminUpdateUserRequest: AdminUpdateUserRequest): ResponseEntity<ApiResponse<Any>> {
+        val result = userService.updateUserByAdmin(adminUpdateUserRequest)
+
+        return ResponseEntity.ok(
+            ApiResponse(
+                success = true,
+                errors = emptyList(),
+                results = listOf(result)
+            )
+        )
+    }
+
     @PostMapping("/update-account-points")
-    fun updateAccountPoints(@RequestBody adminUpdateAccountPointsRequest: AdminUpdateAccountPointsRequest): ResponseEntity<ApiResponse<Any>> {
-        val result = accountService.updateAccountPoints(adminUpdateAccountPointsRequest)
+    fun updateAccount(@RequestBody adminUpdateAccountPointsRequest: AdminUpdateAccountPointsRequest): ResponseEntity<ApiResponse<Any>> {
+        val result = accountService.updateAccountByAdmin(adminUpdateAccountPointsRequest)
 
         return ResponseEntity.ok(
             ApiResponse(

@@ -4,10 +4,7 @@ import rs.playgroundmath.playgroundmath.model.Account
 import rs.playgroundmath.playgroundmath.payload.request.AccountCreateRequest
 import rs.playgroundmath.playgroundmath.payload.request.AccountDeleteRequest
 import rs.playgroundmath.playgroundmath.payload.request.AdminUpdateAccountPointsRequest
-import rs.playgroundmath.playgroundmath.payload.response.AccountCreateResponse
-import rs.playgroundmath.playgroundmath.payload.response.AccountRankListResponse
-import rs.playgroundmath.playgroundmath.payload.response.AccountRelatedToUserResponse
-import rs.playgroundmath.playgroundmath.payload.response.AccountResponse
+import rs.playgroundmath.playgroundmath.payload.response.*
 
 interface AccountService {
 
@@ -25,9 +22,9 @@ interface AccountService {
 
     fun getRankList(): List<AccountRankListResponse>
 
-    fun getAllAccounts(): List<AccountResponse>
+    fun getAllAccounts(): List<AdminAccountResponse>
 
-    fun updateAccountPoints(adminUpdateAccountPointsRequest: AdminUpdateAccountPointsRequest)
+    fun updateAccountByAdmin(adminUpdateAccountPointsRequest: AdminUpdateAccountPointsRequest)
 
     fun deleteAccountByAdmin(accountId: Long)
 

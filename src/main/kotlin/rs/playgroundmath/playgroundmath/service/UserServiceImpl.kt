@@ -11,6 +11,7 @@ import rs.playgroundmath.playgroundmath.enums.Status
 import rs.playgroundmath.playgroundmath.enums.YesNo
 import rs.playgroundmath.playgroundmath.exceptions.DeleteUserPasswordDoNotMatchException
 import rs.playgroundmath.playgroundmath.model.*
+import rs.playgroundmath.playgroundmath.payload.request.AdminUpdateUserRequest
 import rs.playgroundmath.playgroundmath.payload.request.UserDeleteRequest
 import rs.playgroundmath.playgroundmath.payload.request.UserRegisterRequest
 import rs.playgroundmath.playgroundmath.payload.response.*
@@ -109,7 +110,9 @@ class UserServiceImpl(
                 id = user.userId,
                 email = user.email,
                 isParent = user.role.roleType == RoleType.PARENT,
-                isTeacher = user.role.roleType == RoleType.TEACHER
+                isTeacher = user.role.roleType == RoleType.TEACHER,
+                firstName = user.firstName,
+                lastName = user.lastName
             )
         }
     }
@@ -259,5 +262,16 @@ class UserServiceImpl(
             email = user.email,
             accounts = accountsResponse
         )
+    }
+
+    override fun updateUserByAdmin(adminUpdateUserRequest: AdminUpdateUserRequest) {
+        val user = userRepository.findByUserId(adminUpdateUserRequest.userId) ?: throw UserNotFoundException("User with ID: ${adminUpdateUserRequest.userId} not found")
+
+        val updatedUser = user.copy(
+            firstName = adminUpdateUserRequest.firstName,
+            lastName = adminUpdateUserRequest.lastName
+        )
+
+        userRepository.save(updatedUser)
     }
 }

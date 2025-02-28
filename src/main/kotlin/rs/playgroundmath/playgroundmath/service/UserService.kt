@@ -1,6 +1,7 @@
 package rs.playgroundmath.playgroundmath.service
 
 import rs.playgroundmath.playgroundmath.model.User
+import rs.playgroundmath.playgroundmath.payload.request.AdminUpdateUserRequest
 import rs.playgroundmath.playgroundmath.payload.request.UserDeleteRequest
 import rs.playgroundmath.playgroundmath.payload.request.UserRegisterRequest
 import rs.playgroundmath.playgroundmath.payload.response.*
@@ -30,4 +31,6 @@ interface UserService {
     fun getTeacherCourseInformation(teacherId: Long, courseId: Long): TeacherCourseInformationResponse
 
     fun getById(userId: Long): UserResponse
+
+    fun updateUserByAdmin(adminUpdateUserRequest: AdminUpdateUserRequest)
 }

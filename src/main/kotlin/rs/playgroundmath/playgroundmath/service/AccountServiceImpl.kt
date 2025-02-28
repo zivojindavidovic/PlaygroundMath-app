@@ -75,23 +75,25 @@ class AccountServiceImpl(
     override fun saveAccount(account: Account): Account =
         accountRepository.save(account)
 
-    override fun getAllAccounts(): List<AccountResponse> {
+    override fun getAllAccounts(): List<AdminAccountResponse> {
         val accounts = accountRepository.findAll()
 
         return accounts.map { account ->
-            AccountResponse(
+            AdminAccountResponse(
                 accountId = account.accountId,
                 username = account.username,
-                points = account.points
+                points = account.points,
+                age = account.age
             )
         }
     }
 
-    override fun updateAccountPoints(adminUpdateAccountPointsRequest: AdminUpdateAccountPointsRequest) {
+    override fun updateAccountByAdmin(adminUpdateAccountPointsRequest: AdminUpdateAccountPointsRequest) {
         val account = findByAccountId(adminUpdateAccountPointsRequest.accountId)
 
         val updatedAccount = account.copy(
-            points = adminUpdateAccountPointsRequest.points
+            points = adminUpdateAccountPointsRequest.points,
+            username = adminUpdateAccountPointsRequest.username
         )
 
         saveAccount(updatedAccount)
