@@ -18,6 +18,8 @@ interface AccountService {
 
     fun getAccountsRelatedToUserId(userId: Long): AccountRelatedToUserResponse
 
+    fun getAccountsRelatedToUserIdForApplication(userId: Long, courseId: Long): AccountRelatedToUserResponse
+
     fun deleteAccount(accountDeleteRequest: AccountDeleteRequest)
 
     fun getRankList(): List<AccountRankListResponse>

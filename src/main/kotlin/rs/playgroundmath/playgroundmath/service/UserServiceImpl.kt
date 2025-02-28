@@ -41,7 +41,8 @@ class UserServiceImpl(
         var user = User(email = userRegisterRequest.email, password = encoder().encode(userRegisterRequest.password), firstName = userRegisterRequest.firstName, lastName = userRegisterRequest.lastName)
 
         if (userRegisterRequest.accountType == RoleType.TEACHER) {
-           user = user.copy(role = Role(roleId = 3, RoleType.TEACHER))
+            val role = roleService.findRoleByRoleType(RoleType.TEACHER)
+            user = user.copy(role = role!!)
         }
 
         val savedUser = userRepository.save(user)

@@ -19,7 +19,7 @@ import rs.playgroundmath.playgroundmath.repository.AccountRepository
 @Service
 class AccountServiceImpl(
     private val accountRepository: AccountRepository,
-    private val userService: UserService
+    private val userService: UserService,
 ): AccountService {
 
     override fun createAccount(accountCreateRequest: AccountCreateRequest): AccountCreateResponse {
@@ -101,6 +101,12 @@ class AccountServiceImpl(
 
     override fun deleteAccountByAdmin(accountId: Long) {
         accountRepository.deleteById(accountId)
+    }
+
+    override fun getAccountsRelatedToUserIdForApplication(userId: Long, courseId: Long): AccountRelatedToUserResponse {
+        val accounts = accountRepository.findAllByUserIdAndNotHavingCourse(userId, courseId)
+
+        return accounts.toResponse()
     }
 
     override fun getAccountById(accountId: Long): AccountResponse {

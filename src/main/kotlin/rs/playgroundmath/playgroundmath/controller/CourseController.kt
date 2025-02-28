@@ -1,5 +1,6 @@
 package rs.playgroundmath.playgroundmath.controller
 
+import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import rs.playgroundmath.playgroundmath.payload.request.ApplyForCourseRequest
@@ -16,7 +17,7 @@ class CourseController(
 ) {
 
     @PostMapping("/create")
-    fun createCourse(@RequestBody courseCreateRequest: CourseCreateRequest): ResponseEntity<ApiResponse<CourseResponse>> {
+    fun createCourse(@Valid @RequestBody courseCreateRequest: CourseCreateRequest): ResponseEntity<ApiResponse<CourseResponse>> {
         val results = courseService.createCourse(courseCreateRequest)
 
         return ResponseEntity.ok(

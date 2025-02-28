@@ -32,5 +32,5 @@ data class Account(
         joinColumns = [JoinColumn(name = "account_id")],
         inverseJoinColumns = [JoinColumn(name = "course_id")]
     )
-    val courses: MutableList<Course> = mutableListOf()
+    val courses: MutableList<Course> = mutableListOf(),
 )

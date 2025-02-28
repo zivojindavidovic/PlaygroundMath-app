@@ -60,6 +60,19 @@ class AccountController(
         )
     }
 
+    @GetMapping("/getAllForApplication")
+    fun getAccountsRelatedToUserIdForApplication(@RequestParam("userId") userId: Long, @RequestParam("courseId") courseId: Long): ResponseEntity<ApiResponse<AccountRelatedToUserResponse>> {
+        val results = accountService.getAccountsRelatedToUserIdForApplication(userId, courseId)
+
+        return ResponseEntity.ok(
+            ApiResponse(
+                success = true,
+                errors = emptyList(),
+                results = listOf(results)
+            )
+        )
+    }
+
     @GetMapping("/rankList")
     fun getRankList(): List<AccountRankListResponse> =
         accountService.getRankList()
