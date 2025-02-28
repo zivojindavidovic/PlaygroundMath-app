@@ -157,8 +157,11 @@ class UserServiceImpl(
                 )
             }
 
+            val account = accountRepository.findByAccountId(accountId)
+
             AccountCoursesResponse(
                 accountId = accountId,
+                username = account.username,
                 courses = courses
             )
         }
@@ -198,6 +201,9 @@ class UserServiceImpl(
         val accountCourse = accountCourseRepository.findAllByCourse_CourseIdAndStatus(courseId, AccountCourseStatus.ACCEPTED)
         val totalTests = testRepository.countTestByCourse_CourseId(courseId)
 
+        val course = courseRepository.findByCourseId(courseId)
+        val isExpired = course.dueDate!!.isBefore(LocalDateTime.now())
+
         val groupedByAccount = accountCourse.groupBy { it.account!!.accountId }
 
         val teacherAccountResponse = groupedByAccount.map { (accountId, accountCourseList) ->
@@ -227,6 +233,7 @@ class UserServiceImpl(
         return TeacherCourseInformationResponse(
             courseId = courseId,
             totalTests = totalTests,
+            isExpired = isExpired,
             accounts = teacherAccountResponse,
             tests = teacherTestsResponse
         )
