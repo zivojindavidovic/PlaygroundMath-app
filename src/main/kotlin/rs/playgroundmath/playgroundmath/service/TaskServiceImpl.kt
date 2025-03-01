@@ -330,7 +330,7 @@ class TaskServiceImpl(
         numberTwoTo: Long,
         allowedThreeDigitsResult: Boolean = false
     ): Long {
-        val range = numberTwoFrom..numberTwoTo
+        var range = numberTwoFrom..numberTwoTo
 
         return if (allowedThreeDigitsResult) {
             range.random()
@@ -340,7 +340,9 @@ class TaskServiceImpl(
             val div = maxPossibleResult / firstNumber
             val maxPossibleSecondNumber = floor(div).toInt()
 
-            if (maxPossibleSecondNumber > numberTwoFrom) {
+            range = numberTwoFrom .. maxPossibleSecondNumber
+
+            if (range.isEmpty()) {
                 return 0
             }
 
